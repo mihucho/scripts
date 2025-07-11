@@ -11,16 +11,8 @@
 */
 
 if (typeof require === 'undefined') require = importModule;
-const {DmYY, Runing} = require('./DmYY');
+const { DmYY, Runing } = require('./DmYY');
 
-// Node.js环境检测
-const isNode = () => {
-  try {
-    return typeof process !== 'undefined' && process.versions && process.versions.node;
-  } catch {
-    return false;
-  }
-};
 
 // 网上国网API相关常量和配置
 const SERVER_HOST = "https://api.120399.xyz";
@@ -112,63 +104,52 @@ class Store {
   constructor(namespace) {
     this.namespace = namespace || 'default';
     this.cachePath = null;
-    if (!isNode()) {
-      const fm = FileManager.local();
-      this.cachePath = fm.joinPath(fm.documentsDirectory(), 'wsgw_cache');
-      if (!fm.fileExists(this.cachePath)) {
-        fm.createDirectory(this.cachePath, true);
-      }
+
+    const fm = FileManager.local();
+    this.cachePath = fm.joinPath(fm.documentsDirectory(), 'wsgw_cache');
+    if (!fm.fileExists(this.cachePath)) {
+      fm.createDirectory(this.cachePath, true);
     }
   }
-  
+
   get(key) {
-    if (isNode()) {
-      return null; // Node.js环境下暂不支持持久化存储
-    } else {
-      try {
-        const fm = FileManager.local();
-        const filePath = fm.joinPath(this.cachePath, `${this.namespace}_${key}.txt`);
-        if (fm.fileExists(filePath)) {
-          return fm.readString(filePath);
-        }
-      } catch (e) {
-        console.log(`读取缓存失败: ${e}`);
+
+    try {
+      const fm = FileManager.local();
+      const filePath = fm.joinPath(this.cachePath, `${this.namespace}_${key}.txt`);
+      if (fm.fileExists(filePath)) {
+        return fm.readString(filePath);
       }
-      return null;
+    } catch (e) {
+      console.log(`读取缓存失败: ${e}`);
     }
+    return null;
   }
-  
+
   set(key, value) {
-    if (isNode()) {
-      return true; // Node.js环境下暂不支持持久化存储
-    } else {
-      try {
-        const fm = FileManager.local();
-        const filePath = fm.joinPath(this.cachePath, `${this.namespace}_${key}.txt`);
-        fm.writeString(filePath, value);
-        return true;
-      } catch (e) {
-        console.log(`写入缓存失败: ${e}`);
-        return false;
-      }
+    try {
+      const fm = FileManager.local();
+      const filePath = fm.joinPath(this.cachePath, `${this.namespace}_${key}.txt`);
+      fm.writeString(filePath, value);
+      return true;
+    } catch (e) {
+      console.log(`写入缓存失败: ${e}`);
+      return false;
     }
   }
-  
+
   clear(key) {
-    if (isNode()) {
-      return true; // Node.js环境下暂不支持持久化存储
-    } else {
-      try {
-        const fm = FileManager.local();
-        const filePath = fm.joinPath(this.cachePath, `${this.namespace}_${key}.txt`);
-        if (fm.fileExists(filePath)) {
-          fm.remove(filePath);
-        }
-        return true;
-      } catch (e) {
-        console.log(`清除缓存失败: ${e}`);
-        return false;
+
+    try {
+      const fm = FileManager.local();
+      const filePath = fm.joinPath(this.cachePath, `${this.namespace}_${key}.txt`);
+      if (fm.fileExists(filePath)) {
+        fm.remove(filePath);
       }
+      return true;
+    } catch (e) {
+      console.log(`清除缓存失败: ${e}`);
+      return false;
     }
   }
 }
@@ -181,23 +162,23 @@ const wsgwRequest = async (request) => {
   try {
     const req = new Request(request.url);
     req.method = request.method || "GET";
-    
+
     if (request.headers) {
       Object.keys(request.headers).forEach(key => {
         req.headers[key] = request.headers[key];
       });
     }
-    
+
     if (request.body) {
       req.body = request.body;
     }
-    
+
     if (request.data) {
       req.body = typeof request.data === 'string' ? request.data : JSON.stringify(request.data);
     }
-    
+
     const response = await req.loadString();
-    
+
     return {
       statusCode: 200,
       status: 200,
@@ -214,14 +195,14 @@ const Encrypt = async e => {
   let data = response.body;
   try {
     data = JSON.parse(data);
-  } catch {}
+  } catch { }
   return data.data.url = BASE_URL + data.data.url, data.data.body = JSON.stringify(data.data.data), delete data.data.data, data.data;
 };
 
 const Decrypt = async e => {
   const response = await wsgwRequest(e);
   let r = JSON.parse(response.body);
-  const {code: s, message: n, data: t} = r.data;
+  const { code: s, message: n, data: t } = r.data;
   return "" + s == "1" ? t : e.url.indexOf("oauth2/oauth/authorize") > -1 && t && s && "" != s && (10015 === s || 10108 === s || 10009 === s || 10207 === s || 10005 === s || 10010 === s || 30010 === s || 10002 === s && "WEB渠道KeyCode已失效" == n || 10002 === s && WsgwGlobal.bizrt?.token && "Token 为空！" == n) ? Promise.reject(`重新获取: ${n}`) : Promise.reject(n);
 };
 
@@ -252,7 +233,7 @@ const wsgwApiRequest = async e => {
       })
     };
     const r = await Encrypt(o);
-    
+
     switch (e.url) {
       case "/api/oauth2/oauth/authorize":
         Object.assign(r, {
@@ -262,22 +243,22 @@ const wsgwApiRequest = async e => {
       case "/api/oauth2/outer/getWebToken":
         o.headers["content-type"] = "text/plain;charset=UTF-8";
     }
-    
+
     const response = await wsgwRequest(r);
     let s = response.body;
     try {
       s = JSON.parse(s);
-    } catch {}
-    
+    } catch { }
+
     if (s.code && (10010 == s.code || 10002 === s.code && "WEB渠道KeyCode已失效" == s.message || 30010 === s.code || "20103" === s.code || 10002 === s.code && WsgwGlobal.bizrt?.token && "Token 为空！" == s.message)) {
       return Promise.reject(s.message);
     }
-    
+
     const n = {
-      config: {...e},
+      config: { ...e },
       data: s
     };
-    
+
     if ("/api/oauth2/outer/c02/f02" === e.url) {
       Object.assign(n.config, {
         headers: {
@@ -285,7 +266,7 @@ const wsgwApiRequest = async e => {
         }
       });
     }
-    
+
     const t = {
       url: `${SERVER_HOST}/wsgw/decrypt`,
       headers: {
@@ -295,7 +276,7 @@ const wsgwApiRequest = async e => {
         yuheng: n
       })
     };
-    
+
     return await Decrypt(t);
   } catch (e) {
     return Promise.reject(e);
@@ -338,13 +319,13 @@ async function getVerifyCode(username, password) {
         ...WsgwGlobal.requestKey
       }
     };
-    
+
     const o = await wsgwApiRequest(e);
     console.log("✅ 获取验证码凭证成功");
-    
-    const {data: r} = await Recoginze(o.canvasSrc);
+
+    const { data: r } = await Recoginze(o.canvasSrc);
     console.log("✅ 识别验证码成功");
-    
+
     return {
       code: r,
       ticket: o.ticket
@@ -387,12 +368,12 @@ async function login(e, o, username, password) {
         Channels: "web"
       }
     };
-    
-    const {bizrt: s} = await wsgwApiRequest(r);
+
+    const { bizrt: s } = await wsgwApiRequest(r);
     if (!(s?.userInfo?.length > 0)) {
       return Promise.reject("登录失败: 请检查信息填写是否正确! ");
     }
-    
+
     wsgwStore.set("95598_bizrt", jsonStr(s));
     WsgwGlobal.bizrt = s;
     console.log("✅ 登录成功");
@@ -413,8 +394,8 @@ async function getAuthcode() {
         token: WsgwGlobal.bizrt.token
       }
     };
-    
-    const {redirect_url: o} = await wsgwApiRequest(e);
+
+    const { redirect_url: o } = await wsgwApiRequest(e);
     WsgwGlobal.authorizecode = o.split("?code=")[1];
     console.log("✅ 获取授权码成功");
   } catch (e) {
@@ -654,7 +635,7 @@ async function getMonthElecQuantity(e) {
 
 // 登录流程
 async function doLogin(username, password) {
-  const {code: e, ticket: o} = await getVerifyCode(username, password);
+  const { code: e, ticket: o } = await getVerifyCode(username, password);
   await login(o, e, username, password);
 }
 
@@ -663,40 +644,40 @@ async function fetchWsgwData(username, password) {
   if (!username || !password) {
     throw new Error("请先配置网上国网账号密码");
   }
-  
+
   await getKeyCode();
-  
+
   if (!WsgwGlobal.bizrt?.token || !WsgwGlobal.bizrt?.userInfo) {
     await doLogin(username, password);
   }
-  
+
   await getAuthcode();
   await getAccessToken();
   await getBindInfo();
-  
+
   const results = [];
-  
+
   for (let e = 0; e < WsgwGlobal.bindInfo.powerUserList.length; e++) {
     await getElcFee(e);
     await getDayElecQuantity(e);
     await getMonthElecQuantity(e);
-    
+
     const userInfo = WsgwGlobal.bindInfo.powerUserList[e];
     const billData = {
       userInfo: userInfo,
       eleBill: WsgwGlobal.eleBill,
       dayElecQuantity31: { sevenEleList: WsgwGlobal.dayElecQuantity?.sevenEleList || [] },
-      monthElecQuantity: { 
+      monthElecQuantity: {
         mothEleList: WsgwGlobal.monthElecQuantity?.mothEleList || [],
         dataInfo: WsgwGlobal.monthElecQuantity?.dataInfo || {}
       },
       stepElecQuantity: [{ electricParticulars: { totalYearPq: 0 } }],
       arrearsOfFees: Number(WsgwGlobal.eleBill?.historyOwe || "0") > 0 || Number(WsgwGlobal.eleBill?.sumMoney || "0") < 0
     };
-    
+
     results.push(billData);
   }
-  
+
   return results;
 }
 
@@ -734,131 +715,131 @@ class Widget extends DmYY {
   endColor = '#3A9690';
   lastColor = '#00CC99'
   widgetStyle = '1';
-  
+
   dayElePq = [];
   monthElePq = [];
-  
+
   size = {
-    logo : 48 * 0.95,
-    leftStack : 130 * 0.95,
-    smallFont : 12 * 0.95,
-    bigFont : 18 * 0.95,
-    balance : 20 * 0.95,
-    subSpacer : 6.5 * 0.95,
+    logo: 48 * 0.95,
+    leftStack: 130 * 0.95,
+    smallFont: 12 * 0.95,
+    bigFont: 18 * 0.95,
+    balance: 20 * 0.95,
+    subSpacer: 6.5 * 0.95,
   };
-  
+
   wsgw = {
-    step_2 : 2520,
-    step_3 : 4800,
-    interval : 360,
+    step_2: 2520,
+    step_3: 4800,
+    interval: 360,
   };
 
   setRow(stack, key) {
     const itemStack = stack.addStack();
     switch (key) {
-      case '组合一' :
-      this.rowUnit(itemStack, this.settings.group1Left || '上期电费');
-      itemStack.addSpacer();
-      this.rowUnit(itemStack, this.settings.group1Right || '上期电量', true);
-      break;
-      case '组合二' :
-      this.rowUnit(itemStack, this.settings.group2Left || '年度电费');
-      itemStack.addSpacer();
-      this.rowUnit(itemStack, this.settings.group2Right || '年度电量', true);
-      break;
-      case '组合三' :
-      this.rowUnit(itemStack, this.settings.group3Left || '近日用电');
-      itemStack.addSpacer();
-      this.rowUnit(itemStack, this.settings.group3Right || '本月电量', true);
-      break;
+      case '组合一':
+        this.rowUnit(itemStack, this.settings.group1Left || '上期电费');
+        itemStack.addSpacer();
+        this.rowUnit(itemStack, this.settings.group1Right || '上期电量', true);
+        break;
+      case '组合二':
+        this.rowUnit(itemStack, this.settings.group2Left || '年度电费');
+        itemStack.addSpacer();
+        this.rowUnit(itemStack, this.settings.group2Right || '年度电量', true);
+        break;
+      case '组合三':
+        this.rowUnit(itemStack, this.settings.group3Left || '近日用电');
+        itemStack.addSpacer();
+        this.rowUnit(itemStack, this.settings.group3Right || '本月电量', true);
+        break;
       case '阶梯电量':
-      this.stepEleStack(itemStack);
+        this.stepEleStack(itemStack);
       default:
-      return;
+        return;
     }
   };
 
   getWidgetData(key) {
     switch (key) {
-      case '上期电费' :
-      return [key, `${this.monthFee}`, '元'];
-      case '上期电量' :
-      return [key, `${this.monthUsage}`, '度'];
+      case '上期电费':
+        return [key, `${this.monthFee}`, '元'];
+      case '上期电量':
+        return [key, `${this.monthUsage}`, '度'];
       case '年度电费':
-      return [key, `${this.yearFee}`, '元'];
+        return [key, `${this.yearFee}`, '元'];
       case '年度电量':
-      return [key, `${this.yearUsage}`, '度'];
+        return [key, `${this.yearUsage}`, '度'];
       case '本月电量':
-      return [key, `${this.currentMonthEle}`, '度'];
+        return [key, `${this.currentMonthEle}`, '度'];
       case '近日用电':
-      const arr = this.dayElePq.map((item) => item.elePq).reverse();
-      this.dayFee = arr[arr.length - 1] || 0;
-      return [key, `${this.dayFee}`, '度'];
+        const arr = this.dayElePq.map((item) => item.elePq).reverse();
+        this.dayFee = arr[arr.length - 1] || 0;
+        return [key, `${this.dayFee}`, '度'];
       case '电费余额':
-      return [key, `${this.remainFee}`, '元'];
+        return [key, `${this.remainFee}`, '元'];
       case '阶梯电量':
-      return key;
+        return key;
       case '自定户名':
-      return key;
+        return key;
       default:
-      return null;
+        return null;
     }
   };
-  
-  rowUnit(stack, key, right = false){
+
+  rowUnit(stack, key, right = false) {
     const bodyStack = stack.addStack();
     bodyStack.layoutVertically();
     const h = this.size.smallFont + this.size.bigFont + 3;
     const scale = h / 50;
     switch (key) {
-      case '上期电费' :
-      this.unitContent(bodyStack, '上期电费', `${this.monthFee}`, true, right);
-      break;
-      case '上期电量' :
-      this.unitContent(bodyStack, '上期电量', `${this.monthUsage}`,false, right);
-      break;
+      case '上期电费':
+        this.unitContent(bodyStack, '上期电费', `${this.monthFee}`, true, right);
+        break;
+      case '上期电量':
+        this.unitContent(bodyStack, '上期电量', `${this.monthUsage}`, false, right);
+        break;
       case '年度电费':
-      this.unitContent(bodyStack, '年度电费', `${this.yearFee}`, true, right);
-      break;
+        this.unitContent(bodyStack, '年度电费', `${this.yearFee}`, true, right);
+        break;
       case '年度电量':
-      this.unitContent(bodyStack, '年度电量', `${this.yearUsage}`, false, right);
-      break;
+        this.unitContent(bodyStack, '年度电量', `${this.yearUsage}`, false, right);
+        break;
       case '本月电量':
-      this.unitContent(bodyStack, '本月电量', `${this.currentMonthEle}`, false, right);
-      break;
+        this.unitContent(bodyStack, '本月电量', `${this.currentMonthEle}`, false, right);
+        break;
       case '近日用电':
-      const arr = this.dayElePq.map((item) => item.elePq).reverse();
-      this.dayFee = arr[arr.length - 1] || 0;
-      this.unitContent(bodyStack, '近日用电', `${this.dayFee}`, false, right);
-      break;
+        const arr = this.dayElePq.map((item) => item.elePq).reverse();
+        this.dayFee = arr[arr.length - 1] || 0;
+        this.unitContent(bodyStack, '近日用电', `${this.dayFee}`, false, right);
+        break;
       case '电费余额':
-      this.unitContent(bodyStack, '电费余额', `${this.remainFee}`, true, right);
-      break;
+        this.unitContent(bodyStack, '电费余额', `${this.remainFee}`, true, right);
+        break;
       case '日用电图表':
-      if (!this.data[this.index]) return;
-      const dayAmount = parseFloat(this.settings.dayAmount) || 5;
-      const dayOpt = this.dayElePq.map((item) => item.elePq).reverse();
-      if (dayOpt.every(num => num === 0)) return;
-      const result = [...dayOpt].slice(-dayAmount);
-      if (result.every(num => num === 0)) return;
-      const dayChart = bodyStack.addImage(this.chartBar(dayOpt, dayAmount));
-      dayChart.imageSize = new Size((dayAmount * 18 - 10) * scale, 50 * scale);
-      break;
+        if (!this.data[this.index]) return;
+        const dayAmount = parseFloat(this.settings.dayAmount) || 5;
+        const dayOpt = this.dayElePq.map((item) => item.elePq).reverse();
+        if (dayOpt.every(num => num === 0)) return;
+        const result = [...dayOpt].slice(-dayAmount);
+        if (result.every(num => num === 0)) return;
+        const dayChart = bodyStack.addImage(this.chartBar(dayOpt, dayAmount));
+        dayChart.imageSize = new Size((dayAmount * 18 - 10) * scale, 50 * scale);
+        break;
       case '月用电图表':
-      if (!this.data[this.index]) return;
-      const monthAmount = parseFloat(this.settings.monthAmount) || 5;
-      const monthOpt = this.monthElePq.map((item) => item.cost);
-      if (monthOpt.every(num => num === 0)) return;
-      const monthChart = bodyStack.addImage(this.chartBar(monthOpt, monthAmount));
-      monthChart.imageSize = new Size((monthAmount * 18 - 10) * scale, 50 * scale);
-      break;
+        if (!this.data[this.index]) return;
+        const monthAmount = parseFloat(this.settings.monthAmount) || 5;
+        const monthOpt = this.monthElePq.map((item) => item.cost);
+        if (monthOpt.every(num => num === 0)) return;
+        const monthChart = bodyStack.addImage(this.chartBar(monthOpt, monthAmount));
+        monthChart.imageSize = new Size((monthAmount * 18 - 10) * scale, 50 * scale);
+        break;
       case '不显示':
-      return;
+        return;
       default:
-      return;
+        return;
     }
   };
-  
+
   unitContent(stack, upText, downText, fee = false, right = false) {
     const titleStack = stack.addStack();
     if (right) titleStack.addSpacer();
@@ -902,7 +883,7 @@ class Widget extends DmYY {
       icon: '1.square',
       level: 1
     };
-    
+
     const isMonthly = this.settings.stepMode === '月';
 
     const currentUsage = parseFloat(this.currentMonthEle);
@@ -973,7 +954,7 @@ class Widget extends DmYY {
     splitStack.backgroundColor = Color.dynamic(new Color('#B6B5BA'), new Color('#414144'));
   };
   // 标题
-  setTitle (stack, iconColor, nameColor) {
+  setTitle(stack, iconColor, nameColor) {
     const nameStack = stack.addStack();
     const iconSFS = SFSymbol.named('house.fill');
     iconSFS.applyHeavyWeight();
@@ -985,14 +966,14 @@ class Widget extends DmYY {
     name.font = Font.mediumSystemFont(16.5 * this.SCALE);
     name.textColor = nameColor;
   };
-  
+
   setList(stack, data, color) {
     const rowStack = stack.addStack();
     rowStack.centerAlignContent();
     const lineStack = rowStack.addStack();
-    lineStack.size = new Size(8 * this.SCALE, 30 * this.SCALE); 
+    lineStack.size = new Size(8 * this.SCALE, 30 * this.SCALE);
     lineStack.cornerRadius = 4 * this.SCALE;
-    
+
     lineStack.backgroundColor = new Color(color);
 
     rowStack.addSpacer(10 * this.SCALE);
@@ -1003,7 +984,7 @@ class Widget extends DmYY {
 
     const titleStack = leftStack.addStack();
     const title = titleStack.addText(data[0]);
-    title.font = Font.systemFont(10 * this.SCALE); 
+    title.font = Font.systemFont(10 * this.SCALE);
     title.textColor = this.widgetColor;
     title.textOpacity = 0.5;
 
@@ -1025,9 +1006,9 @@ class Widget extends DmYY {
     unit.font = Font.mediumRoundedSystemFont(10 * this.SCALE);
     unit.textColor = Color.dynamic(Color.white(), new Color(color));
   };
-  
+
   // 更新时间
-  setUpdateStack (stack, color) {
+  setUpdateStack(stack, color) {
     const updateStack = stack.addStack();
     updateStack.addSpacer();
     updateStack.centerAlignContent();
@@ -1044,16 +1025,16 @@ class Widget extends DmYY {
     updateText.textOpacity = 0.5;
     updateStack.addSpacer();
   };
-  
+
   // 余额
-  setBalanceStack (stack, color, padding, balanceSize, titleSize, spacer) {
+  setBalanceStack(stack, color, padding, balanceSize, titleSize, spacer) {
     let balance = this.balance;
     let balanceTitle = this.isOverdue ? '电费欠费' : '电费余额';
     if (!this.isOverdue && this.isPostPaid) {
       balance = this.settings.showBalance === 'true' ? this.remainFee : this.monthFee;
       balanceTitle = this.settings.showBalance === 'true' ? '电费余额' : '上期电费';
     };
-    
+
     const bodyStack = stack.addStack();
     bodyStack.layoutVertically();
     bodyStack.cornerRadius = 10;
@@ -1079,22 +1060,22 @@ class Widget extends DmYY {
     balanceTitleStack.addSpacer();
     bodyStack.addSpacer(padding * this.SCALE);
 
-    balanceTitleText.textColor =  this.isOverdue ? new Color('DE2A18') : this.widgetColor;
-    balanceTitleText.font =  Font.semiboldSystemFont(titleSize);
+    balanceTitleText.textColor = this.isOverdue ? new Color('DE2A18') : this.widgetColor;
+    balanceTitleText.font = Font.semiboldSystemFont(titleSize);
     balanceTitleText.textOpacity = 0.5;
   };
 
   getLogo = async () => {
     var logo;
-    if (this.settings.logoImg ==='铁塔') {
+    if (this.settings.logoImg === '铁塔') {
       logo = await this.getImageByUrl('https://raw.githubusercontent.com/anker1209/icon/main/gjdw2.png', 'tower.png');
-    } else if (this.settings.logoImg ==='不显示') {
+    } else if (this.settings.logoImg === '不显示') {
       let context = new DrawContext();
       context.size = new Size(1, 1);
       context.opaque = false; context.setFillColor(new Color('#FFFFFF', 0));
-      context.fillRect(new Rect(0, 0, 1, 1)); 
+      context.fillRect(new Rect(0, 0, 1, 1));
       logo = context.getImage();
-    } else if (this.settings.logoImg ==='国家电网' || !this.settings.logoImg || !this.settings.customizeUrl) {
+    } else if (this.settings.logoImg === '国家电网' || !this.settings.logoImg || !this.settings.customizeUrl) {
       logo = await this.getImageByUrl('https://raw.githubusercontent.com/anker1209/icon/main/gjdw.png', 'wsgw.png');
     } else {
       logo = await this.getImageByUrl(this.settings.customizeUrl, 'customize.png');
@@ -1111,7 +1092,7 @@ class Widget extends DmYY {
     drawing.size = new Size(w, h);
     return drawing;
   };
-  
+
   fillRect(drawing, x, y, width, height, cornerradio, color) {
     let path = new Path();
     let rect = new Rect(x, y, width, height);
@@ -1120,17 +1101,17 @@ class Widget extends DmYY {
     drawing.setFillColor(color);
     drawing.fillPath();
   };
-  
+
   drawLine(drawing, x1, y1, x2, y2, color, width) {
     const path = new Path();
-    path.move(new Point(Math.round(x1),Math.round(y1)));
-    path.addLine(new Point(Math.round(x2),Math.round(y2)));
+    path.move(new Point(Math.round(x1), Math.round(y1)));
+    path.addLine(new Point(Math.round(x2), Math.round(y2)));
     drawing.addPath(path);
     drawing.setStrokeColor(color);
     drawing.setLineWidth(width);
     drawing.strokePath();
   };
-  
+
   drawArc(context, center, radius, startAngle, endAngle, segments, fillColor, lineWidth, dir = 1) {
     const path = new Path();
     const startX = center.x + radius * Math.cos(startAngle);
@@ -1158,11 +1139,11 @@ class Widget extends DmYY {
     halfCirclePath.move(new Point(startX, startY));
 
     for (let i = 0; i <= 10; i++) {
-        const t = i / 10;
-        const angle = startAngle + direction * Math.PI * t;
-        const x = centerX + circleRadius * Math.cos(angle);
-        const y = centerY + circleRadius * Math.sin(angle);
-        halfCirclePath.addLine(new Point(x, y));
+      const t = i / 10;
+      const angle = startAngle + direction * Math.PI * t;
+      const x = centerX + circleRadius * Math.cos(angle);
+      const y = centerY + circleRadius * Math.sin(angle);
+      halfCirclePath.addLine(new Point(x, y));
     }
 
     context.setFillColor(fillColor);
@@ -1195,7 +1176,7 @@ class Widget extends DmYY {
   };
 
   progressBar() {
-    const W = 200, H = this.barHeight , r = 6, h = 6;
+    const W = 200, H = this.barHeight, r = 6, h = 6;
     const drawing = this.makeCanvas(W, H);
     const progress = this.settings.stepMode === '月' ? this.currentMonthEle / this.wsgw.step_3 * W : parseFloat(this.stepEle) / this.wsgw.step_3 * W;
     const circle = progress - 2 * r;
@@ -1210,7 +1191,7 @@ class Widget extends DmYY {
     this.fillRect(drawing, circle > W - r * 2 ? W - r * 2 : circle < 0 ? 0 : circle, H / 2 - r, r * 2, r * 2, r, pointerColor);
     return drawing.getImage();
   };
-  
+
   wideProgressBar() {
     const width = 200;
     const height = 42;
@@ -1218,11 +1199,11 @@ class Widget extends DmYY {
     const drawing = this.makeCanvas(width, height);
     this.drawLine(drawing, this.wsgw.step_2 / this.wsgw.step_3 * width, height, this.wsgw.step_2 / this.wsgw.step_3 * width, 0, new Color(this.smallStackColor, 0.3), 2);
     this.fillRect(drawing, 0, 0, width, height, 6, new Color(this.smallStackColor, 0.3));
-    this.fillRect(drawing, 0, 0, progress > width? width : progress, height, 6, new Color(this.smallStackColor, 1));
+    this.fillRect(drawing, 0, 0, progress > width ? width : progress, height, 6, new Color(this.smallStackColor, 1));
     return drawing.getImage();
   };
 
-  chartBar (opt, n) {
+  chartBar(opt, n) {
     let chartColor = new Color(this.settings.chartColor || '#0db38e', 1);
     const drawing = this.makeCanvas(n * 18 - 10, 50);
     let data = opt;
@@ -1241,8 +1222,8 @@ class Widget extends DmYY {
     };
     const deltaY = 50 / max;
     for (let i = 0; i < n; i++) {
-      let	temp = data[i] * deltaY;
-      if (i + 1  > opt.length) {
+      let temp = data[i] * deltaY;
+      if (i + 1 > opt.length) {
         chartColor = new Color(this.settings.chartColor || '#0db38e', 0.3);
       };
       this.fillRect(drawing, i * 18, 50 - temp, 8, temp, 4, chartColor)
@@ -1261,22 +1242,22 @@ class Widget extends DmYY {
     const totalBgAngle = endBgAngle - startBgAngle;
     const gapAngle = Math.PI / 15;
     const lineWidth = circleRadius * 2;
-    
+
     const colors = [
-    { base: new Color("#00CC99", 0.1), progress: new Color("#00CC99") },
-    { base: new Color("#FFD700", 0.1), progress: new Color("#FFD700") },
-    { base: new Color("#FF4500", 0.1), progress: new Color("#FF4500") },
-    { base: new Color("#800020", 0.1), progress: new Color("#800020") }
+      { base: new Color("#00CC99", 0.1), progress: new Color("#00CC99") },
+      { base: new Color("#FFD700", 0.1), progress: new Color("#FFD700") },
+      { base: new Color("#FF4500", 0.1), progress: new Color("#FF4500") },
+      { base: new Color("#800020", 0.1), progress: new Color("#800020") }
     ];
 
     const segmentAngle = (totalBgAngle - 2 * gapAngle) / 3;
-    
+
     const step = this.stepEleText();
 
     const level = step.level;
     let progress = parseFloat(step.progress.slice(0, -1)) / 100;
     progress = progress > 1 ? 1 : progress;
-    
+
     for (let i = 0; i < 3; i++) {
       const segmentStartAngle = startBgAngle + i * (segmentAngle + gapAngle);
       const segmentEndAngle = segmentStartAngle + segmentAngle;
@@ -1312,7 +1293,7 @@ class Widget extends DmYY {
       );
 
       if (level > i) {
-        const stepColors = this.gradientColor([`#${colors[i].progress.hex}`, `#${colors[i+1].progress.hex}`], 51);
+        const stepColors = this.gradientColor([`#${colors[i].progress.hex}`, `#${colors[i + 1].progress.hex}`], 51);
         const isCurrentLevel = level === i + 1;
         const progressEndAngle = isCurrentLevel
           ? segmentStartAngle + progress * segmentAngle
@@ -1378,7 +1359,7 @@ class Widget extends DmYY {
     const deviceScreenWidth = Device.screenSize().width;
     const deviceScreenHeight = Device.screenSize().height;
 
-    const matchingScreen = screenData.find(screen => 
+    const matchingScreen = screenData.find(screen =>
       (screen.width === deviceScreenWidth && screen.height === deviceScreenHeight) ||
       (screen.width === deviceScreenHeight && screen.height === deviceScreenWidth)
     );
@@ -1387,30 +1368,30 @@ class Widget extends DmYY {
       return 1;
     };
 
-    const scaleFactor = (matchingScreen.widgetSize - 30 ) / (referenceScreenSize.widgetSize - 30);
+    const scaleFactor = (matchingScreen.widgetSize - 30) / (referenceScreenSize.widgetSize - 30);
 
     return Math.floor(scaleFactor * 100) / 100;
   };
 
   gradientColor(colors, step) {
     var startRGB = this.colorToRgb(colors[0]),
-    startR = startRGB[0],
-    startG = startRGB[1],
-    startB = startRGB[2];
+      startR = startRGB[0],
+      startG = startRGB[1],
+      startB = startRGB[2];
 
     var endRGB = this.colorToRgb(colors[1]),
-    endR = endRGB[0],
-    endG = endRGB[1],
-    endB = endRGB[2];
+      endR = endRGB[0],
+      endG = endRGB[1],
+      endB = endRGB[2];
 
     var sR = (endR - startR) / step,
-    sG = (endG - startG) / step,
-    sB = (endB - startB) / step;
+      sG = (endG - startG) / step,
+      sB = (endB - startB) / step;
 
     var colorArr = [];
-    for (var i = 0;i < step; i++) {
-     var hex = this.colorToHex('rgb(' + parseInt((sR * i + startR)) + ',' + parseInt((sG * i + startG)) + ',' + parseInt((sB * i + startB)) + ')');
-     colorArr.push(hex);
+    for (var i = 0; i < step; i++) {
+      var hex = this.colorToHex('rgb(' + parseInt((sR * i + startR)) + ',' + parseInt((sG * i + startG)) + ',' + parseInt((sB * i + startB)) + ')');
+      colorArr.push(hex);
     }
     return colorArr;
   }
@@ -1440,7 +1421,7 @@ class Widget extends DmYY {
     var _this = rgb;
     var reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
     if (/^(rgb|RGB)/.test(_this)) {
-      var aColor = _this.replace(/(?:\(|\)|rgb|RGB)*/g,"").split(",");
+      var aColor = _this.replace(/(?:\(|\)|rgb|RGB)*/g, "").split(",");
       var strHex = "#";
       for (var i = 0; i < aColor.length; i++) {
         var hex = Number(aColor[i]).toString(16);
@@ -1455,12 +1436,12 @@ class Widget extends DmYY {
       }
       return strHex;
     } else if (reg.test(_this)) {
-      var aNum = _this.replace(/#/,"").split("");
+      var aNum = _this.replace(/#/, "").split("");
       if (aNum.length === 6) {
         return _this;
       } else if (aNum.length === 3) {
         var numHex = "#";
-        for (var i = 0; i < aNum.length; i+=1) {
+        for (var i = 0; i < aNum.length; i += 1) {
           numHex += (aNum[i] + aNum[i]);
         }
         return numHex;
@@ -1491,7 +1472,7 @@ class Widget extends DmYY {
     rowStack.centerAlignContent();
     rowStack.addSpacer();
 
-    if(icon) {
+    if (icon) {
       const sfs = SFSymbol.named(icon);
       const sfsImg = rowStack.addImage(sfs.image);
       sfsImg.tintColor = color;
@@ -1523,12 +1504,12 @@ class Widget extends DmYY {
   };
   // ######################################
   // ######################################
-  httpRequest = async(dataName, url, json = true, options, key, method = 'GET') => {
+  httpRequest = async (dataName, url, json = true, options, key, method = 'GET') => {
     let cacheKey = key;
     let localCache = this.loadStringCache(cacheKey);
     const lastCacheTime = this.getCacheModificationDate(cacheKey);
     const timeInterval = Math.floor((this.getCurrentTimeStamp() - lastCacheTime) / 60);
-    
+
     console.log(`${dataName}：缓存${timeInterval}分钟前，有效期${this.wsgw.interval}分钟，${localCache.length}`);
 
     if (timeInterval < this.wsgw.interval && localCache != null && localCache.length > 0) {
@@ -1557,8 +1538,8 @@ class Widget extends DmYY {
       return json ? JSON.parse(localCache) : localCache;
     }
 
-      console.log(`${dataName}：在线请求响应数据：${JSON.stringify(data)}`);
-    
+    console.log(`${dataName}：在线请求响应数据：${JSON.stringify(data)}`);
+
     return data;
   };
 
@@ -1594,7 +1575,7 @@ class Widget extends DmYY {
     return new Date().getTime() / 1000;
   };
 
-  getImageByUrl = async(url, cacheKey) => {
+  getImageByUrl = async (url, cacheKey) => {
     const cacheImg = this.loadImgCache(cacheKey);
     if (cacheImg != undefined && cacheImg != null) {
       console.log(`使用缓存：${cacheKey}`);
@@ -1629,7 +1610,7 @@ class Widget extends DmYY {
     const fileExists = this.fm.fileExists(cacheFile);
     let img = undefined;
     if (fileExists) {
-      if (this.settings.useICloud ==='true') this.fm.downloadFileFromiCloud(this.cachePath);
+      if (this.settings.useICloud === 'true') this.fm.downloadFileFromiCloud(this.cachePath);
       img = Image.fromFile(cacheFile);
     }
     return img;
@@ -1646,7 +1627,7 @@ class Widget extends DmYY {
   async checkAndUpdateScript() {
     const updateUrl = "https://raw.githubusercontent.com/anker1209/Scriptable/main/upcoming.json";
     const scriptName = Script.name() + '.js'
-    
+
     const request = new Request(updateUrl);
     const response = await request.loadJSON();
     const latestVersion = response.find(i => i.name === "sgcc").version;
@@ -1773,15 +1754,15 @@ class Widget extends DmYY {
     // 获取当前年月
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1; 
+    const currentMonth = currentDate.getMonth() + 1;
 
     // 计算当月电费总和
     let sum = sumValuesForMonth(data, currentYear, currentMonth);
-    
+
     if (sum === 0) {
       // 如果本月没有数据，计算上月的数据
-      const previousYear = currentMonth === 1? currentYear - 1 : currentYear;
-      const previousMonth = currentMonth === 1? 12 : currentMonth - 1;
+      const previousYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+      const previousMonth = currentMonth === 1 ? 12 : currentMonth - 1;
       // 检查 data 中是否有上个月的数据
       const hasPreviousMonthData = this.monthElePq.some(item => item.label === `${previousYear}${previousMonth.toString().padStart(2, '0')}`);
       if (hasPreviousMonthData) {
@@ -1800,7 +1781,7 @@ class Widget extends DmYY {
       // 检查是否有直接配置的网上国网账号密码
       const directUsername = this.settings.wsgw_username;
       const directPassword = this.settings.wsgw_password;
-      
+
       if (directUsername && directPassword) {
         console.log('使用内置网上国网API获取数据');
         this.data = await fetchWsgwData(directUsername, directPassword);
@@ -1811,18 +1792,18 @@ class Widget extends DmYY {
         const options = {};
         this.data = await this.httpRequest(dataName, url, true, options, 'BillData.json');
       }
-      
+
       if (!this.data) throw new Error("请求失败,请检查配置");
       this.getUserInfo();
       const billData = await this.getData();
-      
+
       this.dayElePq = billData.dayElecQuantity31?.sevenEleList
         ?.filter((item) => item.dayElePq !== '-')
         ?.map((item) => ({
           label: item.day,
           elePq: parseFloat(item.dayElePq),
         })) || [];
-        
+
       this.monthElePq = (billData.monthElecQuantity?.mothEleList ?? [])
         .map((item) => ({
           label: item.month,
@@ -1836,16 +1817,16 @@ class Widget extends DmYY {
       const consNo = billData.eleBill.consNo;
       const sumMoney = Number(billData.eleBill.sumMoney).toFixed(2);
       const accountBalance = Number(billData.eleBill.accountBalance).toFixed(2);
-      
+
       this.balance = this.isOverdue ? '-' + Math.abs(sumMoney) : sumMoney;
       this.remainFee = this.isPostPaid ? accountBalance : sumMoney;
-      
+
       this.currentMonthEle = this.getSumForCurrentMonth(this.dayElePq);
       this.monthUsage = parseFloat(this.last(billData.monthElecQuantity?.mothEleList)?.monthEleNum ?? 0);
       this.monthFee = parseFloat(this.last(billData.monthElecQuantity?.mothEleList)?.monthEleCost ?? 0).toFixed(2);
       this.yearUsage = parseFloat(billData.monthElecQuantity?.dataInfo?.totalEleNum ?? 0) + Math.round(this.currentMonthEle);
       this.yearFee = parseFloat(billData.monthElecQuantity?.dataInfo?.totalEleCost ?? 0).toFixed(2);
-      
+
       this.stepEle = parseFloat(billData.stepElecQuantity?.[0]?.electricParticulars?.totalYearPq || billData.monthElecQuantity?.dataInfo?.totalEleNum || 0) + Math.round(this.currentMonthEle);
       if (this.settings.stepMode === '双月') this.stepEle = this.getBimonthlyStepEle();
     } catch (e) {
@@ -1857,7 +1838,7 @@ class Widget extends DmYY {
     this.updateIndex();
     return this.data?.[this.index];
   };
-  
+
   getUserInfo() {
     const userArray = this.data.map((item, index) => {
       const conNo_dst = item.userInfo.consNo_dst;
@@ -1870,7 +1851,7 @@ class Widget extends DmYY {
     });
     console.log(`多户显示：桌面小组件长按 —> 编辑小组件 —> Parameter 输入对应户号的下标数字`);
   };
-  
+
   getEleLevel() {
     let dayElePq = [];
     if (this.settings.stepMode === '月') {
@@ -1878,19 +1859,19 @@ class Widget extends DmYY {
       const currentMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
       dayElePq = this.dayElePq.filter(item => item.label.startsWith(currentMonth));
     };
-    
+
     let bimonthElePq = [];
     if (this.settings.stepMode === '双月') {
       const data = this.monthElePq;
       if (data.length % 2 !== 0) {
         data.pop();
       }
-      
+
       for (let i = 0; i < data.length; i += 2) {
         const mergedItem = {
-          label: `${data[i].label}-${data[i+1].label}`,
-          elePq: data[i].elePq + data[i+1].elePq,
-          cost: data[i].cost + data[i+1].cost
+          label: `${data[i].label}-${data[i + 1].label}`,
+          elePq: data[i].elePq + data[i + 1].elePq,
+          cost: data[i].cost + data[i + 1].cost
         };
         bimonthElePq.push(mergedItem);
       }
@@ -1912,26 +1893,26 @@ class Widget extends DmYY {
   updateIndex() {
     const i = args.widgetParameter;
     if (i == 0 || !i || i == null) {
-        this.name = this.settings.name;
-        this.smallStackColor = this.settings.smallStackColor || this.smallStackColor;
-        this.widgetStyle = this.settings.widgetStyle || this.widgetStyle;
-        this.endColor = this.settings.endColor || this.endColor;
-        return;
+      this.name = this.settings.name;
+      this.smallStackColor = this.settings.smallStackColor || this.smallStackColor;
+      this.widgetStyle = this.settings.widgetStyle || this.widgetStyle;
+      this.endColor = this.settings.endColor || this.endColor;
+      return;
     }
 
     if (!this.data[i]) throw new Error("户号不存在");
 
     if (i == 1) {
-        this.name = this.settings.name_1;
-        this.smallStackColor = this.settings.smallStackColor_1 || this.smallStackColor;
-        this.widgetStyle = this.settings.widgetStyle_1 || this.widgetStyle;
-        this.endColor = this.settings.endColor_1 || this.endColor;
+      this.name = this.settings.name_1;
+      this.smallStackColor = this.settings.smallStackColor_1 || this.smallStackColor;
+      this.widgetStyle = this.settings.widgetStyle_1 || this.widgetStyle;
+      this.endColor = this.settings.endColor_1 || this.endColor;
     } else if (i == 2) {
-        this.name = this.settings.name_2;
-        this.smallStackColor = this.settings.smallStackColor_2 || this.smallStackColor;
-        this.widgetStyle = this.settings.widgetStyle_2 || this.widgetStyle;
-        this.endColor = this.settings.endColor_2 || this.endColor;
-    } 
+      this.name = this.settings.name_2;
+      this.smallStackColor = this.settings.smallStackColor_2 || this.smallStackColor;
+      this.widgetStyle = this.settings.widgetStyle_2 || this.widgetStyle;
+      this.endColor = this.settings.endColor_2 || this.endColor;
+    }
     this.index = i;
   };
 
@@ -1940,7 +1921,7 @@ class Widget extends DmYY {
   };
   // ######################################
   // ######################################
-  async setWidgetStyle_1 (stack) {
+  async setWidgetStyle_1(stack) {
     //  余额
     const headerStack = stack.addStack();
     const hlStack = headerStack.addStack();
@@ -1982,9 +1963,9 @@ class Widget extends DmYY {
     const eleList = this.getEleLevel();
 
     const levelGradients = [
-      [new Color("#D6F2E1"), new Color("#98D2BC")], 
-      [new Color("#FFC777"), new Color("#FFB043")], 
-      [new Color("#F1939C"), new Color("#F07C82")], 
+      [new Color("#D6F2E1"), new Color("#98D2BC")],
+      [new Color("#FFC777"), new Color("#FFB043")],
+      [new Color("#F1939C"), new Color("#F07C82")],
     ];
     const defaultColor = new Color("#81CDC7", 0.2);
 
@@ -2027,7 +2008,7 @@ class Widget extends DmYY {
         circle.size = new Size(circleWidth, circleHeight);
         circle.cornerRadius = circleCornerRadius;
 
-        const data = eleList[index]; 
+        const data = eleList[index];
         let fillColor = defaultColor;
         if (data && data.level >= 1 && data.level <= 3) {
           fillColor = levelGradientColors[data.level - 1][levelIndex[data.level]];
@@ -2044,11 +2025,11 @@ class Widget extends DmYY {
     // 底部数据
     const extraData = this.getWidgetData(this.settings.smallStyle_1 || '本月电量');
     stack.addSpacer();
-    
+
     this.setList(stack, extraData, this.smallStackColor)
   };
-  
-  async setWidgetStyle_2 (stack) {
+
+  async setWidgetStyle_2(stack) {
     const bodyStack = stack.addStack();
     //bodyStack.backgroundColor = Color.dynamic(new Color("#E2E2E7", 0), new Color("#2C2C2F"));
     bodyStack.cornerRadius = 14 * this.SCALE;
@@ -2103,8 +2084,8 @@ class Widget extends DmYY {
       this.endColor
     );
   };
-  
-  async setWidgetStyle_3 (stack, color) {
+
+  async setWidgetStyle_3(stack, color) {
     //  标题
     this.setTitle(stack, new Color(color), new Color(color));
     stack.addSpacer();
@@ -2154,8 +2135,8 @@ class Widget extends DmYY {
     wsgw.tintColor = new Color(color);
     wsgw.imageSize = new Size(36 * this.SCALE, 36 * this.SCALE);
   };
-  
-  setWidgetStyle_4 (stack, color) {
+
+  setWidgetStyle_4(stack, color) {
 
     const step = this.stepEleText();
 
@@ -2183,7 +2164,7 @@ class Widget extends DmYY {
       nameStack.addSpacer();
       name.font = Font.mediumSystemFont(16 * this.SCALE);
       name.textColor = mainColor;
-    } else if(arr === '阶梯电量') {
+    } else if (arr === '阶梯电量') {
       const progress = step.progress;
       const icon = step.icon;
       this.createCenteredStack(bodyStack, '阶梯电量', mainColor);
@@ -2244,12 +2225,12 @@ class Widget extends DmYY {
     const bodyStack = w.addStack();
     const smallColor = this.smallStackColor;
     bodyStack.layoutVertically();
-    if (this.widgetStyle ==='1') {
+    if (this.widgetStyle === '1') {
       bodyStack.setPadding(3 * this.SCALE, 3 * this.SCALE, 3 * this.SCALE, 3 * this.SCALE);
       await this.setWidgetStyle_1(bodyStack);
-    } else if (this.widgetStyle ==='2') {
+    } else if (this.widgetStyle === '2') {
       await this.setWidgetStyle_2(bodyStack);
-    } else if (this.widgetStyle ==='3') {
+    } else if (this.widgetStyle === '3') {
       bodyStack.setPadding(3 * this.SCALE, 3 * this.SCALE, 3 * this.SCALE, 3 * this.SCALE);
       await this.setWidgetStyle_3(bodyStack, smallColor);
     } else {
@@ -2270,7 +2251,7 @@ class Widget extends DmYY {
     leftStack.size = new Size(this.size.leftStack / this.SCALE, 0);
     leftStack.backgroundColor = Color.dynamic(new Color(this.settings.leftDayColor || "#F2F2F7"), new Color(this.settings.leftNightColor || "#1C1C1E"));
     //  标题及LOGO
-    if (this.settings.enableName === 'true')  {
+    if (this.settings.enableName === 'true') {
       leftStack.addSpacer(15);
       this.setTitle(leftStack, new Color('#0db38e'), this.widgetColor);
     } else {
@@ -2323,12 +2304,12 @@ class Widget extends DmYY {
       this.wsgw.step_2 = step.step_2;
       this.wsgw.step_3 = step.step_3;
       */
-      
+
       Object.keys(this.size).forEach(key => {
         this.size[key] = this.settings[key] ? this.settings[key] : this.size[key]
         this.size[key] = this.size[key] * this.SCALE;
       })
-      
+
       //console.log(this.settings);
 
     } catch (e) {
@@ -2336,7 +2317,7 @@ class Widget extends DmYY {
     }
     await this.getBillData();
   };
-  
+
   getStepsByCurrentMonth() {
     const currentMonth = new Date().getMonth() + 1;
     const springAutumnMonths = [3, 4, 5, 9, 10, 11];
@@ -2375,14 +2356,14 @@ class Widget extends DmYY {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/barColor.png',
             type: 'color',
             title: '进度条颜色',
-            defaultValue : '#0db38e',
+            defaultValue: '#0db38e',
             val: 'barColor',
           },
           {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/pointerColor.png',
             type: 'color',
             title: '指针颜色',
-            defaultValue : '#0db38e',
+            defaultValue: '#0db38e',
             val: 'pointerColor',
           },
         ],
@@ -2394,7 +2375,7 @@ class Widget extends DmYY {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/chartColor.png',
             type: 'color',
             title: '图表颜色',
-            defaultValue : '#0db38e',
+            defaultValue: '#0db38e',
             val: 'chartColor',
           },
         ],
@@ -2406,14 +2387,14 @@ class Widget extends DmYY {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/leftDayColor.png',
             type: 'color',
             title: '左栏白天颜色',
-            defaultValue : '#F2F2F7',
+            defaultValue: '#F2F2F7',
             val: 'leftDayColor',
           },
           {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/leftNightColor.png',
             type: 'color',
             title: '左栏晚上颜色',
-            defaultValue : '#1C1C1E',
+            defaultValue: '#1C1C1E',
             val: 'leftNightColor',
           },
         ],
@@ -2424,14 +2405,14 @@ class Widget extends DmYY {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/rightDayColor.png',
             type: 'color',
             title: '右栏白天颜色',
-            defaultValue : '#E2E2E7',
+            defaultValue: '#E2E2E7',
             val: 'rightDayColor',
           },
           {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/rightNightColor.png',
             type: 'color',
             title: '右栏晚上颜色',
-            defaultValue : '#2C2C2F',
+            defaultValue: '#2C2C2F',
             val: 'rightNightColor',
           },
         ],
@@ -2470,7 +2451,7 @@ class Widget extends DmYY {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/SCALE.png',
             type: 'input',
             title: '全局缩放比例',
-            placeholder : '1',
+            placeholder: '1',
             desc: '不同机型会造成组件显示问题，适当调整该参数，如0.95、0.9，视小组件显示效果自行调整',
             val: 'SCALE',
           },
@@ -2482,7 +2463,7 @@ class Widget extends DmYY {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/logo.png',
             type: 'input',
             title: 'LOGO大小',
-            placeholder : '48',
+            placeholder: '48',
             desc: '左栏LOGO尺寸，默认48',
             val: 'logo',
           },
@@ -2490,7 +2471,7 @@ class Widget extends DmYY {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/leftStack.png',
             type: 'input',
             title: '左栏尺寸',
-            placeholder : '130',
+            placeholder: '130',
             desc: '默认130',
             val: 'leftStack',
           },
@@ -2502,7 +2483,7 @@ class Widget extends DmYY {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/bigFont.png',
             type: 'input',
             title: '大号文字',
-            placeholder : '18',
+            placeholder: '18',
             desc: '默认18',
             val: 'bigFont',
           },
@@ -2510,7 +2491,7 @@ class Widget extends DmYY {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallFont.png',
             type: 'input',
             title: '小号文字',
-            placeholder : '12',
+            placeholder: '12',
             desc: '默认12',
             val: 'smallFont',
           },
@@ -2522,7 +2503,7 @@ class Widget extends DmYY {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/balance.png',
             type: 'input',
             title: '余额尺寸',
-            placeholder : '20',
+            placeholder: '20',
             desc: '默认20',
             val: 'balance',
           },
@@ -2530,7 +2511,7 @@ class Widget extends DmYY {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/subSpacer.png',
             type: 'input',
             title: '下标偏移',
-            placeholder : '6.5',
+            placeholder: '6.5',
             desc: '默认6.5',
             val: 'subSpacer',
           },
@@ -2546,7 +2527,7 @@ class Widget extends DmYY {
             name: 'reset',
             val: 'reset',
             onClick: () => {
-              const propertiesToDelete = ['SCALE', 'logo', 'leftStack', 'bigFont', 'smallFont', 'balance', 'subSpacer', ];
+              const propertiesToDelete = ['SCALE', 'logo', 'leftStack', 'bigFont', 'smallFont', 'balance', 'subSpacer',];
               propertiesToDelete.forEach(prop => {
                 delete this.settings[prop];
               });
@@ -2753,7 +2734,7 @@ class Widget extends DmYY {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/step_2.png',
             type: 'input',
             title: '二档电量',
-            placeholder : '2520',
+            placeholder: '2520',
             desc: '第二档阶梯电量，默认为2520，各地数据以国网app为准',
             val: 'step_2',
           },
@@ -2761,7 +2742,7 @@ class Widget extends DmYY {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/step_3_month.png',
             type: 'input',
             title: '三档电量',
-            placeholder : '4800',
+            placeholder: '4800',
             desc: '第三档阶梯电量，默认为4800，各地数据以国网app为准',
             val: 'step_3',
           },
@@ -2805,14 +2786,14 @@ class Widget extends DmYY {
           {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor.png',
             type: 'color',
-            defaultValue : '#3A9690',
+            defaultValue: '#3A9690',
             title: '小组件颜色1',
             val: 'smallStackColor',
           },
           {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor.png',
             type: 'color',
-            defaultValue : '#3A9690',
+            defaultValue: '#3A9690',
             title: '小组件颜色2',
             val: 'endColor',
           },
@@ -2838,14 +2819,14 @@ class Widget extends DmYY {
           {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor_1.png',
             type: 'color',
-            defaultValue : '#3A9690',
+            defaultValue: '#3A9690',
             title: '小组件颜色1',
             val: 'smallStackColor_1',
           },
           {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor_1.png',
             type: 'color',
-            defaultValue : '#3A9690',
+            defaultValue: '#3A9690',
             title: '小组件颜色2',
             val: 'endColor_1',
           },
@@ -2871,14 +2852,14 @@ class Widget extends DmYY {
           {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor_2.png',
             type: 'color',
-            defaultValue : '#3A9690',
+            defaultValue: '#3A9690',
             title: '小组件颜色1',
             val: 'smallStackColor_2',
           },
           {
             url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor_2.png',
             type: 'color',
-            defaultValue : '#3A9690',
+            defaultValue: '#3A9690',
             title: '小组件颜色2',
             val: 'endColor_2',
           },
@@ -3071,7 +3052,7 @@ class Widget extends DmYY {
           },
         ],
       });
-     }
+    }
   };
 };
 
