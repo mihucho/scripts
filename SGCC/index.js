@@ -2963,7 +2963,7 @@ class Widget extends DmYY {
             title: '网上国网配置',
             desc: '配置网上国网账号密码，直接从网上国网获取数据',
             type: 'input',
-            onClick: () => {
+            onClick: async () => {
               return this.setWsgwConfig();
             },
           },
