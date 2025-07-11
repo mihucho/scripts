@@ -2,7 +2,7 @@
  * @author: 脑瓜
  * @feedback: https://t.me/Scriptable_CN
  * telegram: @anker1209
- * version: 2.3.3
+ * version: 2.3.4
  * update: 2025/01/03
  * 原创UI，修改套用请注明来源
  * 使用该脚本需DmYY依赖及添加重写，重写修改自作者@Yuheng0101
@@ -19,6 +19,7 @@ const SERVER_HOST = "https://api.120399.xyz";
 const BASE_URL = "https://www.95598.cn";
 const SCRIPTNAME = "网上国网";
 const NAMESPACE = "ONZ3V";
+const VERSION = '2.3.4';
 
 // 实用工具函数
 const jsonParse = e => {
@@ -691,7 +692,7 @@ class Widget extends DmYY {
     this.Run();
   };
 
-  version = '2.3.3';
+  version = VERSION;
 
   fm = FileManager.local();
   CACHE_FOLDER = Script.name();
