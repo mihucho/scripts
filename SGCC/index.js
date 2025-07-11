@@ -2898,14 +2898,14 @@ class Widget extends DmYY {
         title: '网上国网账号配置',
         menu: [
           {
-            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/username.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/user.png',
             type: 'input',
             title: '网上国网账号',
             desc: '请输入网上国网登录账号',
             val: 'wsgw_username',
           },
           {
-            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/password.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor.png',
             type: 'input',
             title: '网上国网密码',
             desc: '请输入网上国网登录密码',
