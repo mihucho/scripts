@@ -6,7 +6,6 @@
  * update: 2025/01/03
  * 原创UI，修改套用请注明来源
  * 使用该脚本需DmYY依赖及添加重写，重写修改自作者@Yuheng0101
- * 重写: https://raw.githubusercontent.com/dompling/Script/master/wsgw/index.js
  * 依赖: https://raw.githubusercontent.com/dompling/Scriptable/master/Scripts/DmYY.js
 */
 
@@ -20,6 +19,7 @@ const BASE_URL = "https://www.95598.cn";
 const SCRIPTNAME = "网上国网";
 const NAMESPACE = "ONZ3V";
 const VERSION = '2.3.4';
+const PROXY_URL = 'https://gh-proxy.com/';
 
 // 实用工具函数
 const jsonParse = e => {
@@ -1069,7 +1069,7 @@ class Widget extends DmYY {
   getLogo = async () => {
     var logo;
     if (this.settings.logoImg === '铁塔') {
-      logo = await this.getImageByUrl('https://raw.githubusercontent.com/anker1209/icon/main/gjdw2.png', 'tower.png');
+      logo = await this.getImageByUrl(PROXY_URL + 'https://raw.githubusercontent.com/anker1209/icon/main/gjdw2.png', 'tower.png');
     } else if (this.settings.logoImg === '不显示') {
       let context = new DrawContext();
       context.size = new Size(1, 1);
@@ -1077,7 +1077,7 @@ class Widget extends DmYY {
       context.fillRect(new Rect(0, 0, 1, 1));
       logo = context.getImage();
     } else if (this.settings.logoImg === '国家电网' || !this.settings.logoImg || !this.settings.customizeUrl) {
-      logo = await this.getImageByUrl('https://raw.githubusercontent.com/anker1209/icon/main/gjdw.png', 'wsgw.png');
+      logo = await this.getImageByUrl(PROXY_URL + 'https://raw.githubusercontent.com/anker1209/icon/main/gjdw.png', 'wsgw.png');
     } else {
       logo = await this.getImageByUrl(this.settings.customizeUrl, 'customize.png');
     };
@@ -1626,7 +1626,7 @@ class Widget extends DmYY {
   };
 
   async checkAndUpdateScript() {
-    const updateUrl = "https://raw.githubusercontent.com/anker1209/Scriptable/main/upcoming.json";
+    const updateUrl = PROXY_URL + "https://raw.githubusercontent.com/mihucho/scripts/refs/heads/main/SGCC/upcoming.json";
     const scriptName = Script.name() + '.js'
 
     const request = new Request(updateUrl);
@@ -2354,14 +2354,14 @@ class Widget extends DmYY {
         title: '进度条颜色',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/barColor.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/barColor.png',
             type: 'color',
             title: '进度条颜色',
             defaultValue: '#0db38e',
             val: 'barColor',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/pointerColor.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/pointerColor.png',
             type: 'color',
             title: '指针颜色',
             defaultValue: '#0db38e',
@@ -2373,7 +2373,7 @@ class Widget extends DmYY {
         title: '',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/chartColor.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/chartColor.png',
             type: 'color',
             title: '图表颜色',
             defaultValue: '#0db38e',
@@ -2385,14 +2385,14 @@ class Widget extends DmYY {
         title: '背景颜色',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/leftDayColor.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/leftDayColor.png',
             type: 'color',
             title: '左栏白天颜色',
             defaultValue: '#F2F2F7',
             val: 'leftDayColor',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/leftNightColor.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/leftNightColor.png',
             type: 'color',
             title: '左栏晚上颜色',
             defaultValue: '#1C1C1E',
@@ -2403,14 +2403,14 @@ class Widget extends DmYY {
       {
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/rightDayColor.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/rightDayColor.png',
             type: 'color',
             title: '右栏白天颜色',
             defaultValue: '#E2E2E7',
             val: 'rightDayColor',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/rightNightColor.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/rightNightColor.png',
             type: 'color',
             title: '右栏晚上颜色',
             defaultValue: '#2C2C2F',
@@ -2422,7 +2422,7 @@ class Widget extends DmYY {
         title: '重置颜色',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/clear.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/clear.png',
             title: '重置颜色',
             desc: '重置当前颜色配置',
             name: 'reset',
@@ -2449,7 +2449,7 @@ class Widget extends DmYY {
         title: '尺寸设置',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/SCALE.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/SCALE.png',
             type: 'input',
             title: '全局缩放比例',
             placeholder: '1',
@@ -2461,7 +2461,7 @@ class Widget extends DmYY {
       {
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/logo.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/logo.png',
             type: 'input',
             title: 'LOGO大小',
             placeholder: '48',
@@ -2469,7 +2469,7 @@ class Widget extends DmYY {
             val: 'logo',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/leftStack.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/leftStack.png',
             type: 'input',
             title: '左栏尺寸',
             placeholder: '130',
@@ -2481,7 +2481,7 @@ class Widget extends DmYY {
       {
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/bigFont.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/bigFont.png',
             type: 'input',
             title: '大号文字',
             placeholder: '18',
@@ -2489,7 +2489,7 @@ class Widget extends DmYY {
             val: 'bigFont',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallFont.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallFont.png',
             type: 'input',
             title: '小号文字',
             placeholder: '12',
@@ -2501,7 +2501,7 @@ class Widget extends DmYY {
       {
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/balance.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/balance.png',
             type: 'input',
             title: '余额尺寸',
             placeholder: '20',
@@ -2509,7 +2509,7 @@ class Widget extends DmYY {
             val: 'balance',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/subSpacer.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/subSpacer.png',
             type: 'input',
             title: '下标偏移',
             placeholder: '6.5',
@@ -2522,7 +2522,7 @@ class Widget extends DmYY {
         title: '重置尺寸',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/clear.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/clear.png',
             title: '重置尺寸',
             desc: '重置当前尺寸配置',
             name: 'reset',
@@ -2549,21 +2549,21 @@ class Widget extends DmYY {
         title: '中组件显示设置',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/firstRow.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/firstRow.png',
             type: 'select',
             title: '第一栏显示内容',
             options: ['组合一', '组合二', '组合三', '阶梯电量'],
             val: 'firstRow',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/secondRow.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/secondRow.png',
             type: 'select',
             title: '第二栏显示内容',
             options: ['组合二', '组合一', '组合三', '阶梯电量'],
             val: 'secondRow',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/thirdRow.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/thirdRow.png',
             type: 'select',
             title: '第三栏显示内容',
             options: ['阶梯电量', '组合一', '组合二', '组合三'],
@@ -2575,14 +2575,14 @@ class Widget extends DmYY {
         title: '组合一显示内容',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/group1Left.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/group1Left.png',
             type: 'select',
             title: '组合一左侧显示内容',
             options: ['上期电费', '上期电量', '年度电费', '年度电量', '日用电图表', '月用电图表', '近日用电', '本月电量', '电费余额', '不显示'],
             val: 'group1Left',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/group1Right.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/group1Right.png',
             type: 'select',
             title: '组合一右侧显示内容',
             options: ['上期电量', '上期电费', '年度电费', '年度电量', '日用电图表', '月用电图表', '近日用电', '本月电量', '电费余额', '不显示'],
@@ -2594,14 +2594,14 @@ class Widget extends DmYY {
         title: '组合二显示内容',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/group2Left.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/group2Left.png',
             type: 'select',
             title: '组合二左侧显示内容',
             options: ['年度电费', '年度电量', '上期电费', '上期电量', '日用电图表', '月用电图表', '近日用电', '本月电量', '电费余额', '不显示'],
             val: 'group2Left',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/group2Right.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/group2Right.png',
             type: 'select',
             title: '组合二右侧显示内容',
             options: ['年度电量', '年度电费', '上期电费', '上期电量', '日用电图表', '月用电图表', '近日用电', '本月电量', '电费余额', '不显示'],
@@ -2613,14 +2613,14 @@ class Widget extends DmYY {
         title: '组合三显示内容',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/group3Left.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/group3Left.png',
             type: 'select',
             title: '组合三左侧显示内容',
             options: ['年度电费', '年度电量', '上期电费', '上期电量', '日用电图表', '月用电图表', '近日用电', '本月电量', '电费余额', '不显示'],
             val: 'group3Left',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/group3Right.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/group3Right.png',
             type: 'select',
             title: '组合三右侧显示内容',
             options: ['年度电量', '年度电费', '上期电费', '上期电量', '日用电图表', '月用电图表', '近日用电', '本月电量', '电费余额', '不显示'],
@@ -2632,14 +2632,14 @@ class Widget extends DmYY {
         title: '',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/dayAmount.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/dayAmount.png',
             type: 'select',
             title: '日用电图表显示天数',
             options: ['5', '6', '7', '8', '9', '10', '11', '12'],
             val: 'dayAmount',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/monthAmount.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/monthAmount.png',
             type: 'select',
             title: '月用电图表显示月数',
             options: ['5', '6', '7', '8', '9', '10', '11', '12'],
@@ -2650,7 +2650,7 @@ class Widget extends DmYY {
       {
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/balance.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/balance.png',
             type: 'switch',
             title: '后付费用户左栏显示余额',
             desc: '',
@@ -2662,14 +2662,14 @@ class Widget extends DmYY {
         title: '小组件显示设置',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallLeft.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallLeft.png',
             type: 'select',
             title: '小组件1、3显示内容',
             options: ['年度电量', '年度电费', '上期电费', '上期电量', '近日用电', '本月电量', '电费余额'],
             val: 'smallStyle_1',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallLeft.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallLeft.png',
             type: 'select',
             title: '小组件4显示内容',
             options: ['年度电量', '年度电费', '上期电费', '上期电量', '近日用电', '本月电量', '电费余额', '阶梯电量', '自定户名'],
@@ -2681,14 +2681,14 @@ class Widget extends DmYY {
         title: '',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStyle_2_up.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStyle_2_up.png',
             type: 'select',
             title: '小组件2显示内容1',
             options: ['年度电费', '年度电量', '上期电费', '上期电量', '近日用电', '本月电量', '电费余额'],
             val: 'smallStyle_2_up',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStyle_2_down.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStyle_2_down.png',
             type: 'select',
             title: '小组件2显示内容2',
             options: ['年度电费', '年度电量', '上期电费', '上期电量', '近日用电', '本月电量', '电费余额'],
@@ -2700,14 +2700,14 @@ class Widget extends DmYY {
         title: '图片设置',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/logoImg.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/logoImg.png',
             type: 'select',
             title: 'LOGO显示',
             options: ['国家电网', '铁塔', '自定义', '不显示'],
             val: 'logoImg',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/customizeUrl.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/customizeUrl.png',
             type: 'input',
             title: '自定义',
             desc: '自定义显示图片URL地址，建议透明PNG图片，更改自定图片前需清除缓存',
@@ -2719,7 +2719,7 @@ class Widget extends DmYY {
         title: '阶梯电量',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/stepMode.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/stepMode.png',
             type: 'select',
             title: '阶梯电量计算方式',
             options: ['年', '月', '双月'],
@@ -2732,7 +2732,7 @@ class Widget extends DmYY {
         title: '',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/step_2.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/step_2.png',
             type: 'input',
             title: '二档电量',
             placeholder: '2520',
@@ -2740,7 +2740,7 @@ class Widget extends DmYY {
             val: 'step_2',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/step_3_month.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/step_3_month.png',
             type: 'input',
             title: '三档电量',
             placeholder: '4800',
@@ -2760,7 +2760,7 @@ class Widget extends DmYY {
         title: '',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/enableName.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/enableName.png',
             title: '中组件开启户名显示',
             type: 'switch',
             val: 'enableName',
@@ -2771,28 +2771,28 @@ class Widget extends DmYY {
         title: '多户配置',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/name.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/name.png',
             type: 'input',
             title: '户名一',
             desc: '自定义小尺寸组件标题，替代默认“国家电网”',
             val: 'name',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/widgetStyle.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/widgetStyle.png',
             type: 'select',
             title: '小组件样式',
             options: ['1', '2', '3', '4'],
             val: 'widgetStyle',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor.png',
             type: 'color',
             defaultValue: '#3A9690',
             title: '小组件颜色1',
             val: 'smallStackColor',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor.png',
             type: 'color',
             defaultValue: '#3A9690',
             title: '小组件颜色2',
@@ -2804,28 +2804,28 @@ class Widget extends DmYY {
         title: '',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/name_1.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/name_1.png',
             type: 'input',
             title: '户名二',
             desc: '自定义小尺寸组件标题，替代默认“国家电网”',
             val: 'name_1',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/widgetStyle_1.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/widgetStyle_1.png',
             type: 'select',
             title: '小组件样式',
             options: ['1', '2', '3', '4'],
             val: 'widgetStyle_1',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor_1.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor_1.png',
             type: 'color',
             defaultValue: '#3A9690',
             title: '小组件颜色1',
             val: 'smallStackColor_1',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor_1.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor_1.png',
             type: 'color',
             defaultValue: '#3A9690',
             title: '小组件颜色2',
@@ -2837,28 +2837,28 @@ class Widget extends DmYY {
         title: '',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/name_2.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/name_2.png',
             type: 'input',
             title: '户名三',
             desc: '自定义小尺寸组件标题，替代默认“国家电网”',
             val: 'name_2',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/widgetStyle_2.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/widgetStyle_2.png',
             type: 'select',
             title: '小组件样式',
             options: ['1', '2', '3', '4'],
             val: 'widgetStyle_2',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor_2.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor_2.png',
             type: 'color',
             defaultValue: '#3A9690',
             title: '小组件颜色1',
             val: 'smallStackColor_2',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor_2.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/smallStackColor_2.png',
             type: 'color',
             defaultValue: '#3A9690',
             title: '小组件颜色2',
@@ -2870,7 +2870,7 @@ class Widget extends DmYY {
         title: '重置颜色',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/clear.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/clear.png',
             title: '重置颜色',
             desc: '重置当前颜色配置',
             name: 'reset',
@@ -2898,14 +2898,14 @@ class Widget extends DmYY {
         title: '网上国网账号配置',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/username.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/username.png',
             type: 'input',
             title: '网上国网账号',
             desc: '请输入网上国网登录账号',
             val: 'wsgw_username',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/password.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/password.png',
             type: 'input',
             title: '网上国网密码',
             desc: '请输入网上国网登录密码',
@@ -2917,7 +2917,7 @@ class Widget extends DmYY {
         title: '说明',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/info.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/info.png',
             title: '使用说明',
             desc: '配置网上国网账号密码后，将直接从网上国网获取数据，无需其他重写配置',
             name: 'info',
@@ -2937,13 +2937,13 @@ class Widget extends DmYY {
         title: '组件配置',
         menu: [
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/useICloud.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/useICloud.png',
             type: 'switch',
             title: 'iCloud',
             val: 'useICloud',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/update.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/update.png',
             type: 'input',
             title: '脚本更新',
             name: 'update',
@@ -2952,7 +2952,7 @@ class Widget extends DmYY {
             },
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/interval.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/interval.png',
             type: 'input',
             placeholder: '360',
             title: '刷新时间',
@@ -2960,7 +2960,7 @@ class Widget extends DmYY {
             val: 'interval',
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/wsgw.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/wsgw.png',
             title: '网上国网配置',
             desc: '配置网上国网账号密码，直接从网上国网获取数据',
             type: 'input',
@@ -2969,7 +2969,7 @@ class Widget extends DmYY {
             },
           },
           {
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/reset.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/reset.png',
             title: '清除缓存',
             desc: '',
             val: 'reset',
@@ -3002,7 +3002,7 @@ class Widget extends DmYY {
           },
           {
             name: 'size',
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/size.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/size.png',
             title: '尺寸配置',
             type: 'input',
             onClick: () => {
@@ -3011,7 +3011,7 @@ class Widget extends DmYY {
           },
           {
             name: 'show',
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/show.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/show.png',
             title: '显示配置',
             type: 'input',
             onClick: () => {
@@ -3020,7 +3020,7 @@ class Widget extends DmYY {
           },
           {
             name: 'user',
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/user.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/user.png',
             title: '多户配置',
             type: 'input',
             onClick: () => {
@@ -3035,7 +3035,7 @@ class Widget extends DmYY {
         menu: [
           {
             name: 'basic',
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/basic.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/basic.png',
             title: '基础设置',
             type: 'input',
             onClick: () => {
@@ -3044,7 +3044,7 @@ class Widget extends DmYY {
           },
           {
             name: 'reload',
-            url: 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/reload.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/reload.png',
             title: '重载组件',
             type: 'input',
             onClick: () => {
