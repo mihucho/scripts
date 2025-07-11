@@ -382,7 +382,6 @@ async function login(e, o, username, password) {
     return /验证错误/.test(e) ? (console.log(`滑块验证出错, 重新登录: ${e}`), await doLogin(username, password)) : Promise.reject(`登陆失败: ${e}`);
   }
 }
-
 // 获取授权码
 async function getAuthcode() {
   console.log("⏳ 获取授权码...");
@@ -636,6 +635,10 @@ async function getMonthElecQuantity(e) {
 
 // 登录流程
 async function doLogin(username, password) {
+  const { code: e, ticket: o } = await getVerifyCode(username, password);
+  await login(o, e, username, password);
+}
+async function testWsgwLogin(username, password) {
   const { code: e, ticket: o } = await getVerifyCode(username, password);
   await login(o, e, username, password);
 }
@@ -1782,7 +1785,6 @@ class Widget extends DmYY {
       // 检查是否有直接配置的网上国网账号密码
       const directUsername = this.settings.wsgw_username;
       const directPassword = this.settings.wsgw_password;
-
       if (directUsername && directPassword) {
         console.log('使用内置网上国网API获取数据');
         this.data = await fetchWsgwData(directUsername, directPassword);
@@ -2914,12 +2916,50 @@ class Widget extends DmYY {
         ],
       },
       {
+        title: '登录测试',
+        menu: [
+          {
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/user.png',
+            title: '测试登录',
+            desc: '验证配置的账号密码是否正确',
+            name: 'test_login',
+            val: 'test_login',
+            onClick: async () => {
+              const username = this.settings.wsgw_username;
+              const password = this.settings.wsgw_password;
+              if (!username || !password) {
+                const alert = new Alert();
+                alert.title = "请先填写账号和密码";
+                alert.message = "请在上方输入网上国网账号和密码后再测试登录。";
+                alert.addAction("确定");
+                await alert.present();
+                return;
+              }
+              try {
+                await testWsgwLogin(username, password);
+                const alert = new Alert();
+                alert.title = "登录成功";
+                alert.message = "账号密码验证通过。";
+                alert.addAction("确定");
+                await alert.present();
+              } catch (e) {
+                const alert = new Alert();
+                alert.title = "登录失败";
+                alert.message = String(e);
+                alert.addAction("确定");
+                await alert.present();
+              }
+            },
+          },
+        ],
+      },
+      {
         title: '说明',
         menu: [
           {
-            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/info.png',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/user.png',
             title: '使用说明',
-            desc: '配置网上国网账号密码后，将直接从网上国网获取数据，无需其他重写配置',
+            desc: '配置网上国网账号密码后，将直接从网上国网获取数据，无需其他重写配置。建议先测试登录确认账号密码正确。',
             name: 'info',
           },
         ],
@@ -2960,11 +3000,12 @@ class Widget extends DmYY {
             val: 'interval',
           },
           {
+            name: 'account',
             url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/wsgw.png',
             title: '网上国网配置',
-            desc: '配置网上国网账号密码，直接从网上国网获取数据',
+            desc: '配置网上国网账号密码，支持测试登录验证',
             type: 'input',
-            onClick: async () => {
+            onClick: () => {
               return this.setWsgwConfig();
             },
           },
