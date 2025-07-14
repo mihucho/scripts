@@ -398,7 +398,7 @@ class BroadbandWidget extends DmYY {
 		}
 	}
 
-	// 小组件渲染 - 采用上下布局，更适合小尺寸
+	// 小组件渲染 - 移除"宽带余额"文本，参考中等样式的单位显示
 	renderSmall = async (w) => {
 		const padding = 12 * this.SCALE;
 		w.setPadding(padding, padding, padding, padding);
@@ -435,28 +435,24 @@ class BroadbandWidget extends DmYY {
 
 		bodyStack.addSpacer();
 
-		// 余额展示区域
+		// 余额展示区域 - 移除标题文本，参考中等样式的单位显示
 		const balanceContainer = bodyStack.addStack();
 		balanceContainer.layoutVertically();
 		balanceContainer.cornerRadius = 12;
 		balanceContainer.backgroundColor = Color.dynamic(new Color(this.settings.leftDayColor || "#F2F2F7"), new Color(this.settings.leftNightColor || "#1C1C1E"));
 		balanceContainer.setPadding(12, 12, 12, 12);
 
-		const balanceTitle = balanceContainer.addText('宽带余额');
-		balanceTitle.font = Font.systemFont(11 * this.SCALE);
-		balanceTitle.textColor = this.widgetColor;
-		balanceTitle.textOpacity = 0.5;
-		balanceTitle.centerAlignText();
-
-		balanceContainer.addSpacer(4);
-
+		// 直接显示余额和单位，参考中等组件的单位样式
 		const balanceValueStack = balanceContainer.addStack();
 		balanceValueStack.addSpacer();
+		balanceValueStack.centerAlignContent();
+		
 		const balanceValue = balanceValueStack.addText(`${this.balance}`);
 		balanceValue.font = Font.boldRoundedSystemFont(20 * this.SCALE);
 		balanceValue.textColor = this.widgetColor;
 		balanceValue.minimumScaleFactor = 0.5;
 		
+		// 使用与中等组件相同的单位显示方式
 		this.unit(balanceValueStack, '元', 4 * this.SCALE, this.widgetColor);
 		balanceValueStack.addSpacer();
 
@@ -621,6 +617,7 @@ class BroadbandWidget extends DmYY {
 		monthlyTitle.font = Font.systemFont(10 * this.SCALE);
 		monthlyTitle.textColor = this.widgetColor;
 		monthlyTitle.textOpacity = 0.5;
+		monthlyTitle.centerAlignText();
 
 		const monthlyValueStack = monthlyContent.addStack();
 		monthlyValueStack.centerAlignContent();
@@ -719,7 +716,7 @@ class BroadbandWidget extends DmYY {
 		return w;
 	}
 
-	// 大组件渲染 - 改为上下布局
+	// 大组件渲染 - 修复余额颜色和指示条对齐问题
 	renderLarge = async (w) => {
 		w.setPadding(16, 16, 16, 16);
 		w.backgroundColor = Color.dynamic(new Color(this.settings.rightDayColor || "#E2E2E7"), new Color(this.settings.rightNightColor || "#2C2C2F"));
@@ -762,7 +759,7 @@ class BroadbandWidget extends DmYY {
 
 		mainStack.addSpacer(20);
 
-		// 余额展示区域
+		// 余额展示区域 - 修复颜色问题
 		const balanceContainer = mainStack.addStack();
 		balanceContainer.layoutVertically();
 		balanceContainer.cornerRadius = 16;
@@ -770,7 +767,7 @@ class BroadbandWidget extends DmYY {
 		balanceContainer.setPadding(20, 20, 20, 20);
 
 		const balanceHeader = balanceContainer.addStack();
-		const balanceLabel = balanceHeader.addText('当前宽带余额');
+		const balanceLabel = balanceHeader.addText('宽带余额');
 		balanceLabel.font = Font.mediumSystemFont(16);
 		balanceLabel.textColor = Color.dynamic(new Color('#666666'), new Color('#AAAAAA'));
 
@@ -784,12 +781,12 @@ class BroadbandWidget extends DmYY {
 
 		const balanceValue = balanceContainer.addText(`${this.balance}`);
 		balanceValue.font = Font.boldSystemFont(42);
-		balanceValue.textColor = new Color(this.getStatusColor(this.balance));
+		balanceValue.textColor = this.widgetColor; // 改为默认颜色
 		balanceValue.centerAlignText();
 
 		mainStack.addSpacer(20);
 
-		// 数据展示区域 - 2x2网格布局
+		// 数据展示区域 - 修复指示条对齐问题
 		const dataContainer = mainStack.addStack();
 		dataContainer.layoutVertically();
 		dataContainer.cornerRadius = 16;
@@ -824,7 +821,7 @@ class BroadbandWidget extends DmYY {
 		return w;
 	}
 
-	// 创建数据项的辅助方法
+	// 修复数据项对齐问题
 	createDataItem(parentStack, title, value, unit, color) {
 		const itemStack = parentStack.addStack();
 		itemStack.layoutVertically();
@@ -837,7 +834,7 @@ class BroadbandWidget extends DmYY {
 		titleText.centerAlignText();
 
 		const valueContainer = itemStack.addStack();
-		valueContainer.addSpacer();
+		// 修复对齐问题：不使用addSpacer()开头，让彩色指示条与标题对齐
 
 		// 彩色指示条
 		const colorBar = valueContainer.addStack();
