@@ -779,10 +779,13 @@ class BroadbandWidget extends DmYY {
 
 		balanceContainer.addSpacer(12);
 
-		const balanceValue = balanceContainer.addText(`${this.balance}`);
+		const balanceValueStack = balanceContainer.addStack();
+		balanceValueStack.addSpacer();
+		const balanceValue = balanceValueStack.addText(`${this.balance}`);
 		balanceValue.font = Font.boldSystemFont(42);
 		balanceValue.textColor = this.widgetColor; // 改为默认颜色
 		balanceValue.centerAlignText();
+		balanceValueStack.addSpacer();
 
 		mainStack.addSpacer(12);
 
