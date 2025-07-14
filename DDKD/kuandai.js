@@ -757,7 +757,7 @@ class BroadbandWidget extends DmYY {
 
 		headerStack.addSpacer();
 
-		mainStack.addSpacer(20);
+		mainStack.addSpacer(12);
 
 		// 余额展示区域 - 修复颜色问题
 		const balanceContainer = mainStack.addStack();
@@ -784,7 +784,7 @@ class BroadbandWidget extends DmYY {
 		balanceValue.textColor = this.widgetColor; // 改为默认颜色
 		balanceValue.centerAlignText();
 
-		mainStack.addSpacer(20);
+		mainStack.addSpacer(12);
 
 		// 数据展示区域 - 修复指示条对齐问题
 		const dataContainer = mainStack.addStack();
