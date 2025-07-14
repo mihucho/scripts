@@ -518,43 +518,62 @@ class BroadbandWidget extends DmYY {
 		wsgw.imageSize = new Size(36 * this.SCALE, 36 * this.SCALE);
 	}
 
-	// 小组件渲染 - 改为与中组件一致的设计
+	// 小组件渲染 - 采用左右分栏主题，但适合小尺寸的布局
 	renderSmall = async (w) => {
 		w.setPadding(0, 0, 0, 0);
 		w.backgroundColor = Color.dynamic(new Color(this.settings.rightDayColor || "#E2E2E7"), new Color(this.settings.rightNightColor || "#2C2C2F"));
 		const updateColor = new Color('#2F6E6B');
 		const bodyStack = w.addStack();
 
-		//  左侧stack - 与中组件完全一致但调整尺寸
+		//  左侧stack - 保持左右分栏主题
 		const leftStack = bodyStack.addStack();
 		leftStack.layoutVertically();
-		leftStack.setPadding(0, 12, 0, 12);
-		leftStack.size = new Size((this.size.leftStack / this.SCALE) * 0.7, 0); // 小组件适当缩小
+		leftStack.setPadding(0, 8, 0, 8);
+		leftStack.size = new Size(80 * this.SCALE, 0); // 小组件左栏更窄
 		leftStack.backgroundColor = Color.dynamic(new Color(this.settings.leftDayColor || "#F2F2F7"), new Color(this.settings.leftNightColor || "#1C1C1E"));
 
-		//  标题及LOGO - 与中组件完全一致
-		leftStack.addSpacer();
+		//  LOGO
+		leftStack.addSpacer(8);
 		const logoStack = leftStack.addStack();
 		logoStack.addSpacer();
 		let wsgw = logoStack.addImage(await this.getLogo());
-		wsgw.imageSize = new Size(this.size.logo * 0.8, this.size.logo * 0.8); // 小组件Logo稍小
+		wsgw.imageSize = new Size(28 * this.SCALE, 28 * this.SCALE); // 小组件Logo更小
 		logoStack.addSpacer();
 
-		leftStack.addSpacer();
-		this.setUpdateStack(leftStack, updateColor);
-		leftStack.addSpacer(2);
+		leftStack.addSpacer(8);
 
-		const balanceStackBgcolor = Color.dynamic(new Color(this.settings.rightDayColor || "#E2E2E7"), new Color(this.settings.rightNightColor || "#2C2C2F"));
-		this.balance = this.balance;
-		this.setBalanceStack(leftStack, balanceStackBgcolor, 6 * this.SCALE, this.size.balance * 0.9, this.size.smallFont, 3.5); // 小组件适当缩小
-		leftStack.addSpacer(12);
+		// 更新时间
+		this.setUpdateStack(leftStack, updateColor);
+		leftStack.addSpacer(8);
 
 		this.split(bodyStack, 0.5, 0, true);
 
-		//  右侧Stack - 简化版的右侧内容
+		//  右侧Stack - 显示主要信息
 		const rightStack = bodyStack.addStack();
-		rightStack.setPadding(12, 12, 12, 12);
+		rightStack.setPadding(8, 8, 8, 8);
 		rightStack.layoutVertically();
+
+		// 余额
+		const balanceStack = rightStack.addStack();
+		balanceStack.layoutVertically();
+		
+		const balanceTitle = balanceStack.addText('宽带余额');
+		balanceTitle.font = Font.systemFont(9 * this.SCALE);
+		balanceTitle.textColor = this.widgetColor;
+		balanceTitle.textOpacity = 0.5;
+
+		const balanceValueStack = balanceStack.addStack();
+		const balanceValue = balanceValueStack.addText(`${this.balance}`);
+		balanceValue.font = Font.boldRoundedSystemFont(16 * this.SCALE);
+		balanceValue.textColor = this.widgetColor;
+		balanceValue.minimumScaleFactor = 0.5;
+		
+		balanceValueStack.addSpacer(2);
+		const unitText = balanceValueStack.addText('元');
+		unitText.font = Font.systemFont(9 * this.SCALE);
+		unitText.textColor = this.widgetColor;
+
+		rightStack.addSpacer();
 
 		// 可用天数
 		const remainingStack = rightStack.addStack();
@@ -562,107 +581,53 @@ class BroadbandWidget extends DmYY {
 		remainingStack.centerAlignContent();
 
 		const remainingBar = remainingStack.addStack();
-		remainingBar.size = new Size(6 * this.SCALE, 25 * this.SCALE);
-		remainingBar.cornerRadius = 3 * this.SCALE;
+		remainingBar.size = new Size(4 * this.SCALE, 20 * this.SCALE);
+		remainingBar.cornerRadius = 2 * this.SCALE;
 		remainingBar.backgroundColor = new Color('#4CAF50');
 
-		remainingStack.addSpacer(8 * this.SCALE);
+		remainingStack.addSpacer(6 * this.SCALE);
 
 		const remainingContent = remainingStack.addStack();
 		remainingContent.layoutVertically();
-		remainingContent.addSpacer(1 * this.SCALE);
 
 		const remainingTitle = remainingContent.addText('可用天数');
-		remainingTitle.font = Font.systemFont(9 * this.SCALE);
+		remainingTitle.font = Font.systemFont(8 * this.SCALE);
 		remainingTitle.textColor = this.widgetColor;
 		remainingTitle.textOpacity = 0.5;
 
 		const remainingValueStack = remainingContent.addStack();
-		remainingValueStack.centerAlignContent();
-
 		const remainingValue = remainingValueStack.addText(this.remainingDays.toString());
-		remainingValue.font = Font.boldRoundedSystemFont(14 * this.SCALE);
+		remainingValue.font = Font.boldRoundedSystemFont(12 * this.SCALE);
 		remainingValue.textColor = this.widgetColor;
 
-		remainingValueStack.addSpacer();
-
-		const remainingUnitStack = remainingValueStack.addStack();
-		remainingUnitStack.cornerRadius = 3 * this.SCALE;
-		remainingUnitStack.borderWidth = 1;
-		remainingUnitStack.borderColor = new Color('#4CAF50');
-		remainingUnitStack.setPadding(1, 2.5 * this.SCALE, 1, 2.5 * this.SCALE);
-		remainingUnitStack.backgroundColor = Color.dynamic(new Color('#4CAF50'), new Color('#4CAF50', 0.3));
-
-		const remainingUnit = remainingUnitStack.addText('天');
-		remainingUnit.font = Font.mediumRoundedSystemFont(9 * this.SCALE);
-		remainingUnit.textColor = Color.dynamic(Color.white(), new Color('#4CAF50'));
-
-		rightStack.addSpacer();
-
-		// 每月费用
-		const monthlyStack = rightStack.addStack();
-		monthlyStack.layoutHorizontally();
-		monthlyStack.centerAlignContent();
-
-		const monthlyBar = monthlyStack.addStack();
-		monthlyBar.size = new Size(6 * this.SCALE, 25 * this.SCALE);
-		monthlyBar.cornerRadius = 3 * this.SCALE;
-		monthlyBar.backgroundColor = new Color('#2196F3');
-
-		monthlyStack.addSpacer(8 * this.SCALE);
-
-		const monthlyContent = monthlyStack.addStack();
-		monthlyContent.layoutVertically();
-		monthlyContent.addSpacer(1 * this.SCALE);
-
-		const monthlyTitle = monthlyContent.addText('每月费用');
-		monthlyTitle.font = Font.systemFont(9 * this.SCALE);
-		monthlyTitle.textColor = this.widgetColor;
-		monthlyTitle.textOpacity = 0.5;
-
-		const monthlyValueStack = monthlyContent.addStack();
-		monthlyValueStack.centerAlignContent();
-
-		const monthlyValue = monthlyValueStack.addText(this.monthlyFee);
-		monthlyValue.font = Font.boldRoundedSystemFont(14 * this.SCALE);
-		monthlyValue.textColor = this.widgetColor;
-
-		monthlyValueStack.addSpacer();
-
-		const monthlyUnitStack = monthlyValueStack.addStack();
-		monthlyUnitStack.cornerRadius = 3 * this.SCALE;
-		monthlyUnitStack.borderWidth = 1;
-		monthlyUnitStack.borderColor = new Color('#2196F3');
-		monthlyUnitStack.setPadding(1, 2.5 * this.SCALE, 1, 2.5 * this.SCALE);
-		monthlyUnitStack.backgroundColor = Color.dynamic(new Color('#2196F3'), new Color('#2196F3', 0.3));
-
-		const monthlyUnit = monthlyUnitStack.addText('元');
-		monthlyUnit.font = Font.mediumRoundedSystemFont(9 * this.SCALE);
-		monthlyUnit.textColor = Color.dynamic(Color.white(), new Color('#2196F3'));
+		remainingValueStack.addSpacer(2);
+		const remainingUnit = remainingValueStack.addText('天');
+		remainingUnit.font = Font.systemFont(8 * this.SCALE);
+		remainingUnit.textColor = this.widgetColor;
 
 		return w;
 	}
 
-	// 大组件渲染 - 改为与中组件一致的设计，只是比例更大
-	renderLarge = async (w) => {
+	// 中等组件渲染 - 保持不变
+	renderMedium = async (w) => {
 		w.setPadding(0, 0, 0, 0);
 		w.backgroundColor = Color.dynamic(new Color(this.settings.rightDayColor || "#E2E2E7"), new Color(this.settings.rightNightColor || "#2C2C2F"));
 		const updateColor = new Color('#2F6E6B');
 		const bodyStack = w.addStack();
 
-		//  左侧stack - 与中组件完全一致但比例更大
+		//  左侧stack
 		const leftStack = bodyStack.addStack();
 		leftStack.layoutVertically();
-		leftStack.setPadding(0, 18, 0, 18);
-		leftStack.size = new Size((this.size.leftStack / this.SCALE) * 1.2, 0); // 大组件适当放大
+		leftStack.setPadding(0, 15, 0, 15);
+		leftStack.size = new Size(this.size.leftStack / this.SCALE, 0);
 		leftStack.backgroundColor = Color.dynamic(new Color(this.settings.leftDayColor || "#F2F2F7"), new Color(this.settings.leftNightColor || "#1C1C1E"));
 
-		//  标题及LOGO - 与中组件完全一致
+		//  标题及LOGO
 		leftStack.addSpacer();
 		const logoStack = leftStack.addStack();
 		logoStack.addSpacer();
 		let wsgw = logoStack.addImage(await this.getLogo());
-		wsgw.imageSize = new Size(this.size.logo * 1.2, this.size.logo * 1.2); // 大组件Logo稍大
+		wsgw.imageSize = new Size(this.size.logo, this.size.logo);
 		logoStack.addSpacer();
 
 		leftStack.addSpacer();
@@ -671,20 +636,20 @@ class BroadbandWidget extends DmYY {
 
 		const balanceStackBgcolor = Color.dynamic(new Color(this.settings.rightDayColor || "#E2E2E7"), new Color(this.settings.rightNightColor || "#2C2C2F"));
 		this.balance = this.balance;
-		this.setBalanceStack(leftStack, balanceStackBgcolor, 10 * this.SCALE, this.size.balance * 1.1, this.size.smallFont * 1.1, 5); // 大组件适当放大
-		leftStack.addSpacer(18);
+		this.setBalanceStack(leftStack, balanceStackBgcolor, 8 * this.SCALE, this.size.balance, this.size.smallFont, 4.5);
+		leftStack.addSpacer(15);
 
 		this.split(bodyStack, 0.5, 0, true);
 
-		//  右侧Stack - 与中组件完全一致
+		//  右侧Stack
 		const rightStack = bodyStack.addStack();
-		rightStack.setPadding(18, 18, 18, 18);
+		rightStack.setPadding(15, 15, 15, 15);
 		rightStack.layoutVertically();
 
 		// 第一行：可用天数 和 每月费用
 		const firstRow = rightStack.addStack();
 		firstRow.layoutHorizontally();
-		firstRow.spacing = 15;
+		firstRow.spacing = 12;
 
 		// 可用天数
 		const remainingStack = firstRow.addStack();
@@ -692,18 +657,18 @@ class BroadbandWidget extends DmYY {
 		remainingStack.centerAlignContent();
 
 		const remainingBar = remainingStack.addStack();
-		remainingBar.size = new Size(8 * this.SCALE, 35 * this.SCALE);
+		remainingBar.size = new Size(8 * this.SCALE, 30 * this.SCALE);
 		remainingBar.cornerRadius = 4 * this.SCALE;
 		remainingBar.backgroundColor = new Color('#4CAF50');
 
-		remainingStack.addSpacer(12 * this.SCALE);
+		remainingStack.addSpacer(10 * this.SCALE);
 
 		const remainingContent = remainingStack.addStack();
 		remainingContent.layoutVertically();
 		remainingContent.addSpacer(2 * this.SCALE);
 
 		const remainingTitle = remainingContent.addText('可用天数');
-		remainingTitle.font = Font.systemFont(11 * this.SCALE);
+		remainingTitle.font = Font.systemFont(10 * this.SCALE);
 		remainingTitle.textColor = this.widgetColor;
 		remainingTitle.textOpacity = 0.5;
 
@@ -711,7 +676,7 @@ class BroadbandWidget extends DmYY {
 		remainingValueStack.centerAlignContent();
 
 		const remainingValue = remainingValueStack.addText(this.remainingDays.toString());
-		remainingValue.font = Font.boldRoundedSystemFont(18 * this.SCALE);
+		remainingValue.font = Font.boldRoundedSystemFont(16 * this.SCALE);
 		remainingValue.textColor = this.widgetColor;
 
 		remainingValueStack.addSpacer();
@@ -724,7 +689,7 @@ class BroadbandWidget extends DmYY {
 		remainingUnitStack.backgroundColor = Color.dynamic(new Color('#4CAF50'), new Color('#4CAF50', 0.3));
 
 		const remainingUnit = remainingUnitStack.addText('天');
-		remainingUnit.font = Font.mediumRoundedSystemFont(11 * this.SCALE);
+		remainingUnit.font = Font.mediumRoundedSystemFont(10 * this.SCALE);
 		remainingUnit.textColor = Color.dynamic(Color.white(), new Color('#4CAF50'));
 
 		// 每月费用
@@ -733,18 +698,18 @@ class BroadbandWidget extends DmYY {
 		monthlyStack.centerAlignContent();
 
 		const monthlyBar = monthlyStack.addStack();
-		monthlyBar.size = new Size(8 * this.SCALE, 35 * this.SCALE);
+		monthlyBar.size = new Size(8 * this.SCALE, 30 * this.SCALE);
 		monthlyBar.cornerRadius = 4 * this.SCALE;
 		monthlyBar.backgroundColor = new Color('#2196F3');
 
-		monthlyStack.addSpacer(12 * this.SCALE);
+		monthlyStack.addSpacer(10 * this.SCALE);
 
 		const monthlyContent = monthlyStack.addStack();
 		monthlyContent.layoutVertically();
 		monthlyContent.addSpacer(2 * this.SCALE);
 
 		const monthlyTitle = monthlyContent.addText('每月费用');
-		monthlyTitle.font = Font.systemFont(11 * this.SCALE);
+		monthlyTitle.font = Font.systemFont(10 * this.SCALE);
 		monthlyTitle.textColor = this.widgetColor;
 		monthlyTitle.textOpacity = 0.5;
 
@@ -752,7 +717,7 @@ class BroadbandWidget extends DmYY {
 		monthlyValueStack.centerAlignContent();
 
 		const monthlyValue = monthlyValueStack.addText(this.monthlyFee);
-		monthlyValue.font = Font.boldRoundedSystemFont(18 * this.SCALE);
+		monthlyValue.font = Font.boldRoundedSystemFont(16 * this.SCALE);
 		monthlyValue.textColor = this.widgetColor;
 
 		monthlyValueStack.addSpacer();
@@ -765,7 +730,7 @@ class BroadbandWidget extends DmYY {
 		monthlyUnitStack.backgroundColor = Color.dynamic(new Color('#2196F3'), new Color('#2196F3', 0.3));
 
 		const monthlyUnit = monthlyUnitStack.addText('元');
-		monthlyUnit.font = Font.mediumRoundedSystemFont(11 * this.SCALE);
+		monthlyUnit.font = Font.mediumRoundedSystemFont(10 * this.SCALE);
 		monthlyUnit.textColor = Color.dynamic(Color.white(), new Color('#2196F3'));
 
 		rightStack.addSpacer();
@@ -775,7 +740,7 @@ class BroadbandWidget extends DmYY {
 		// 第二行：套餐类型 和 状态
 		const secondRow = rightStack.addStack();
 		secondRow.layoutHorizontally();
-		secondRow.spacing = 15;
+		secondRow.spacing = 12;
 
 		// 套餐类型
 		const packageStack = secondRow.addStack();
@@ -783,18 +748,18 @@ class BroadbandWidget extends DmYY {
 		packageStack.centerAlignContent();
 
 		const packageBar = packageStack.addStack();
-		packageBar.size = new Size(8 * this.SCALE, 35 * this.SCALE);
+		packageBar.size = new Size(8 * this.SCALE, 30 * this.SCALE);
 		packageBar.cornerRadius = 4 * this.SCALE;
 		packageBar.backgroundColor = new Color('#FFB347');
 
-		packageStack.addSpacer(12 * this.SCALE);
+		packageStack.addSpacer(10 * this.SCALE);
 
 		const packageContent = packageStack.addStack();
 		packageContent.layoutVertically();
 		packageContent.addSpacer(2 * this.SCALE);
 
 		const packageTitle = packageContent.addText('套餐类型');
-		packageTitle.font = Font.systemFont(11 * this.SCALE);
+		packageTitle.font = Font.systemFont(10 * this.SCALE);
 		packageTitle.textColor = this.widgetColor;
 		packageTitle.textOpacity = 0.5;
 
@@ -802,7 +767,7 @@ class BroadbandWidget extends DmYY {
 		packageValueStack.centerAlignContent();
 
 		const packageValue = packageValueStack.addText(this.packageType);
-		packageValue.font = Font.boldRoundedSystemFont(18 * this.SCALE);
+		packageValue.font = Font.boldRoundedSystemFont(16 * this.SCALE);
 		packageValue.textColor = this.widgetColor;
 
 		packageValueStack.addSpacer();
@@ -813,18 +778,18 @@ class BroadbandWidget extends DmYY {
 		statusStack.centerAlignContent();
 
 		const statusBar = statusStack.addStack();
-		statusBar.size = new Size(8 * this.SCALE, 35 * this.SCALE);
+		statusBar.size = new Size(8 * this.SCALE, 30 * this.SCALE);
 		statusBar.cornerRadius = 4 * this.SCALE;
 		statusBar.backgroundColor = new Color('#9C27B0');
 
-		statusStack.addSpacer(12 * this.SCALE);
+		statusStack.addSpacer(10 * this.SCALE);
 
 		const statusContent = statusStack.addStack();
 		statusContent.layoutVertically();
 		statusContent.addSpacer(2 * this.SCALE);
 
 		const statusTitle = statusContent.addText('余额状态');
-		statusTitle.font = Font.systemFont(11 * this.SCALE);
+		statusTitle.font = Font.systemFont(10 * this.SCALE);
 		statusTitle.textColor = this.widgetColor;
 		statusTitle.textOpacity = 0.5;
 
@@ -833,10 +798,187 @@ class BroadbandWidget extends DmYY {
 
 		const statusText = this.balance > 30 ? '正常' : this.balance > 10 ? '偏低' : '不足';
 		const statusValue = statusValueStack.addText(statusText);
-		statusValue.font = Font.boldRoundedSystemFont(18 * this.SCALE);
+		statusValue.font = Font.boldRoundedSystemFont(16 * this.SCALE);
 		statusValue.textColor = this.widgetColor;
 
 		statusValueStack.addSpacer();
+
+		return w;
+	}
+
+	// 大组件渲染 - 采用左右分栏主题，但适合大尺寸的更丰富布局
+	renderLarge = async (w) => {
+		w.setPadding(0, 0, 0, 0);
+		w.backgroundColor = Color.dynamic(new Color(this.settings.rightDayColor || "#E2E2E7"), new Color(this.settings.rightNightColor || "#2C2C2F"));
+		const updateColor = new Color('#2F6E6B');
+		const bodyStack = w.addStack();
+
+		//  左侧stack - 保持左右分栏主题
+		const leftStack = bodyStack.addStack();
+		leftStack.layoutVertically();
+		leftStack.setPadding(0, 20, 0, 20);
+		leftStack.size = new Size(160 * this.SCALE, 0); // 大组件左栏更宽
+		leftStack.backgroundColor = Color.dynamic(new Color(this.settings.leftDayColor || "#F2F2F7"), new Color(this.settings.leftNightColor || "#1C1C1E"));
+
+		//  标题及LOGO
+		leftStack.addSpacer();
+		const logoStack = leftStack.addStack();
+		logoStack.addSpacer();
+		let wsgw = logoStack.addImage(await this.getLogo());
+		wsgw.imageSize = new Size(60 * this.SCALE, 60 * this.SCALE); // 大组件Logo更大
+		logoStack.addSpacer();
+
+		leftStack.addSpacer();
+		this.setUpdateStack(leftStack, updateColor);
+		leftStack.addSpacer(4);
+
+		// 余额展示
+		const balanceStackBgcolor = Color.dynamic(new Color(this.settings.rightDayColor || "#E2E2E7"), new Color(this.settings.rightNightColor || "#2C2C2F"));
+		this.balance = this.balance;
+		this.setBalanceStack(leftStack, balanceStackBgcolor, 12 * this.SCALE, this.size.balance * 1.2, this.size.smallFont * 1.1, 6);
+		leftStack.addSpacer();
+
+		this.split(bodyStack, 0.5, 0, true);
+
+		//  右侧Stack - 更丰富的信息展示
+		const rightStack = bodyStack.addStack();
+		rightStack.setPadding(20, 20, 20, 20);
+		rightStack.layoutVertically();
+
+		// 第一行：可用天数 和 每月费用
+		const firstRow = rightStack.addStack();
+		firstRow.layoutHorizontally();
+		firstRow.spacing = 16;
+
+		// 可用天数
+		const remainingStack = firstRow.addStack();
+		remainingStack.layoutVertically();
+		remainingStack.centerAlignContent();
+
+		const remainingHeader = remainingStack.addStack();
+		remainingHeader.centerAlignContent();
+		
+		const remainingBar = remainingHeader.addStack();
+		remainingBar.size = new Size(10 * this.SCALE, 40 * this.SCALE);
+		remainingBar.cornerRadius = 5 * this.SCALE;
+		remainingBar.backgroundColor = new Color('#4CAF50');
+
+		remainingHeader.addSpacer(12 * this.SCALE);
+
+		const remainingContent = remainingHeader.addStack();
+		remainingContent.layoutVertically();
+
+		const remainingTitle = remainingContent.addText('可用天数');
+		remainingTitle.font = Font.systemFont(12 * this.SCALE);
+		remainingTitle.textColor = this.widgetColor;
+		remainingTitle.textOpacity = 0.5;
+
+		const remainingValueStack = remainingContent.addStack();
+		const remainingValue = remainingValueStack.addText(this.remainingDays.toString());
+		remainingValue.font = Font.boldRoundedSystemFont(20 * this.SCALE);
+		remainingValue.textColor = this.widgetColor;
+
+		remainingValueStack.addSpacer(4);
+		const remainingUnit = remainingValueStack.addText('天');
+		remainingUnit.font = Font.systemFont(12 * this.SCALE);
+		remainingUnit.textColor = this.widgetColor;
+
+		// 每月费用
+		const monthlyStack = firstRow.addStack();
+		monthlyStack.layoutVertically();
+		monthlyStack.centerAlignContent();
+
+		const monthlyHeader = monthlyStack.addStack();
+		monthlyHeader.centerAlignContent();
+		
+		const monthlyBar = monthlyHeader.addStack();
+		monthlyBar.size = new Size(10 * this.SCALE, 40 * this.SCALE);
+		monthlyBar.cornerRadius = 5 * this.SCALE;
+		monthlyBar.backgroundColor = new Color('#2196F3');
+
+		monthlyHeader.addSpacer(12 * this.SCALE);
+
+		const monthlyContent = monthlyHeader.addStack();
+		monthlyContent.layoutVertically();
+
+		const monthlyTitle = monthlyContent.addText('每月费用');
+		monthlyTitle.font = Font.systemFont(12 * this.SCALE);
+		monthlyTitle.textColor = this.widgetColor;
+		monthlyTitle.textOpacity = 0.5;
+
+		const monthlyValueStack = monthlyContent.addStack();
+		const monthlyValue = monthlyValueStack.addText(this.monthlyFee);
+		monthlyValue.font = Font.boldRoundedSystemFont(20 * this.SCALE);
+		monthlyValue.textColor = this.widgetColor;
+
+		monthlyValueStack.addSpacer(4);
+		const monthlyUnit = monthlyValueStack.addText('元');
+		monthlyUnit.font = Font.systemFont(12 * this.SCALE);
+		monthlyUnit.textColor = this.widgetColor;
+
+		rightStack.addSpacer(20);
+		this.split(rightStack, 0, 1 * this.SCALE);
+		rightStack.addSpacer(20);
+
+		// 第二行：套餐类型 和 状态
+		const secondRow = rightStack.addStack();
+		secondRow.layoutHorizontally();
+		secondRow.spacing = 16;
+
+		// 套餐类型
+		const packageStack = secondRow.addStack();
+		packageStack.layoutVertically();
+		packageStack.centerAlignContent();
+
+		const packageHeader = packageStack.addStack();
+		packageHeader.centerAlignContent();
+		
+		const packageBar = packageHeader.addStack();
+		packageBar.size = new Size(10 * this.SCALE, 40 * this.SCALE);
+		packageBar.cornerRadius = 5 * this.SCALE;
+		packageBar.backgroundColor = new Color('#FFB347');
+
+		packageHeader.addSpacer(12 * this.SCALE);
+
+		const packageContent = packageHeader.addStack();
+		packageContent.layoutVertically();
+
+		const packageTitle = packageContent.addText('套餐类型');
+		packageTitle.font = Font.systemFont(12 * this.SCALE);
+		packageTitle.textColor = this.widgetColor;
+		packageTitle.textOpacity = 0.5;
+
+		const packageValue = packageContent.addText(this.packageType);
+		packageValue.font = Font.boldRoundedSystemFont(20 * this.SCALE);
+		packageValue.textColor = this.widgetColor;
+
+		// 状态
+		const statusStack = secondRow.addStack();
+		statusStack.layoutVertically();
+		statusStack.centerAlignContent();
+
+		const statusHeader = statusStack.addStack();
+		statusHeader.centerAlignContent();
+		
+		const statusBar = statusHeader.addStack();
+		statusBar.size = new Size(10 * this.SCALE, 40 * this.SCALE);
+		statusBar.cornerRadius = 5 * this.SCALE;
+		statusBar.backgroundColor = new Color('#9C27B0');
+
+		statusHeader.addSpacer(12 * this.SCALE);
+
+		const statusContent = statusHeader.addStack();
+		statusContent.layoutVertically();
+
+		const statusTitle = statusContent.addText('余额状态');
+		statusTitle.font = Font.systemFont(12 * this.SCALE);
+		statusTitle.textColor = this.widgetColor;
+		statusTitle.textOpacity = 0.5;
+
+		const statusText = this.balance > 30 ? '正常' : this.balance > 10 ? '偏低' : '不足';
+		const statusValue = statusContent.addText(statusText);
+		statusValue.font = Font.boldRoundedSystemFont(20 * this.SCALE);
+		statusValue.textColor = this.widgetColor;
 
 		return w;
 	}
