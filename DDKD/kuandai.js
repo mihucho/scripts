@@ -954,13 +954,13 @@ class BroadbandWidget extends DmYY {
 				title: '组件配置',
 				menu: [
 					{
-						url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/useICloud.png',
+						url: PROXY_URL + 'https://raw.githubusercontent.com/mihucho/scripts/main/DDKD/useICloud.png',
 						type: 'switch',
 						title: 'iCloud',
 						val: 'useICloud',
 					},
 					{
-						url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/update.png',
+						url: PROXY_URL + 'https://raw.githubusercontent.com/mihucho/scripts/main/DDKD/update.png',
 						type: 'input',
 						title: '脚本更新',
 						name: 'update',
@@ -1029,7 +1029,7 @@ class BroadbandWidget extends DmYY {
 						}
 					},
 					{
-						url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/reset.png',
+						url: PROXY_URL + 'https://raw.githubusercontent.com/mihucho/scripts/main/DDKD/reset.png',
 						title: '清除缓存',
 						desc: '',
 						val: 'reset',
@@ -1043,7 +1043,7 @@ class BroadbandWidget extends DmYY {
 					},
 					{
 						name: 'reload',
-						url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/reload.png',
+						url: PROXY_URL + 'https://raw.githubusercontent.com/mihucho/scripts/main/DDKD/reload.png',
 						title: '重载组件',
 						type: 'input',
 						onClick: () => {
