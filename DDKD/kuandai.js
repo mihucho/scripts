@@ -736,7 +736,6 @@ class BroadbandWidget extends DmYY {
 
 		return w;
 	}
-
 	// 大组件渲染 - 完全仿照国网renderLarge
 	renderLarge = async (w) => {
 		w.setPadding(16, 16, 16, 16);
@@ -952,7 +951,6 @@ class BroadbandWidget extends DmYY {
 
 		return w;
 	}
-
 	// 初始化 - 完全仿照国网init
 	init = async () => {
 		try {
