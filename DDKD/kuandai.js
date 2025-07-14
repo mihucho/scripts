@@ -9,57 +9,47 @@
 if (typeof require === 'undefined') require = importModule;
 const { DmYY, Runing } = require('./DmYY');
 
+const VERSION = '6.0';
+const PROXY_URL = 'https://gh-proxy.com/';
+
 class BroadbandWidget extends DmYY {
   constructor(arg) {
     super(arg);
     this.name = '电信宽带';
     this.en = 'broadband';
-    this.version = '6.0';
+    this.index = 0;
+    this.data = null;
     this.Run();
   }
 
-  // 初始化比例因子
-  SCALE = this.getWidgetScaleFactor();
+  version = VERSION;
 
-  // 添加文件管理器和缓存路径
   fm = FileManager.local();
   CACHE_FOLDER = Script.name();
   cachePath = null;
 
-  // 获取缩放比例
-  getWidgetScaleFactor() {
-    const referenceScreenSize = { width: 430, height: 932, widgetSize: 170 };
-    const screenData = [
-      { width: 440, height: 956, widgetSize: 170 }, // 16 Pro Max
-      { width: 430, height: 932, widgetSize: 170 }, // 16 Plus, 15 Plus, 15 Pro Max, 14 Pro Max
-      { width: 428, height: 926, widgetSize: 170 }, // 14 Plus, 13 Pro Max, 12 Pro Max
-      { width: 414, height: 896, widgetSize: 169 }, // 11 Pro Max, XS Max, 11, XR
-      { width: 402, height: 874, widgetSize: 162 }, // 16 Pro
-      { width: 414, height: 736, widgetSize: 159 }, // Home button Plus phones
-      { width: 393, height: 852, widgetSize: 158 }, // 16, 15, 15 Pro, 14 Pro
-      { width: 390, height: 844, widgetSize: 158 }, // 14, 13, 13 Pro, 12, 12 Pro
-      { width: 375, height: 812, widgetSize: 155 }, // 13 mini, 12 mini / 11 Pro, XS, X
-      { width: 375, height: 667, widgetSize: 148 }, // SE3, SE2, Home button Plus in Display Zoom mode
-      { width: 360, height: 780, widgetSize: 155 }, // 11 and XR in Display Zoom mode
-      { width: 320, height: 568, widgetSize: 141 } // SE1
-    ];
+  // 电信宽带相关数据
+  balance = 0;
+  remainingDays = 0;
+  monthlyFee = 0;
+  packageType = '包月';
+  update = this.formatDate();
+  
+  // 界面样式控制
+  SCALE = 1;
+  smallStackColor = '#3A9690';
+  endColor = '#3A9690';
+  lastColor = '#00CC99';
+  widgetStyle = '1';
 
-    const deviceScreenWidth = Device.screenSize().width;
-    const deviceScreenHeight = Device.screenSize().height;
-
-    const matchingScreen = screenData.find(screen =>
-      (screen.width === deviceScreenWidth && screen.height === deviceScreenHeight) ||
-      (screen.width === deviceScreenHeight && screen.height === deviceScreenWidth)
-    );
-
-    if (!matchingScreen) {
-      return 1;
-    };
-
-    const scaleFactor = (matchingScreen.widgetSize - 30) / (referenceScreenSize.widgetSize - 30);
-
-    return Math.floor(scaleFactor * 100) / 100;
-  }
+  size = {
+    logo: 48 * 0.95,
+    leftStack: 130 * 0.95,
+    smallFont: 12 * 0.95,
+    bigFont: 18 * 0.95,
+    balance: 20 * 0.95,
+    subSpacer: 6.5 * 0.95,
+  };
 
   // 计算剩余使用天数
   calculateRemainingDays(balance) {
@@ -141,40 +131,53 @@ class BroadbandWidget extends DmYY {
     }
   }
 
-  // 创建背景色 - 完全仿照国网
-  createBackgroundColor() {
-    return Color.dynamic(new Color('#E2E2E7'), new Color('#2C2C2F'));
+  // 获取缩放比例 - 完全仿照国网
+  getWidgetScaleFactor() {
+    const referenceScreenSize = { width: 430, height: 932, widgetSize: 170 };
+    const screenData = [
+      { width: 440, height: 956, widgetSize: 170 }, // 16 Pro Max
+      { width: 430, height: 932, widgetSize: 170 }, // 16 Plus, 15 Plus, 15 Pro Max, 14 Pro Max
+      { width: 428, height: 926, widgetSize: 170 }, // 14 Plus, 13 Pro Max, 12 Pro Max
+      { width: 414, height: 896, widgetSize: 169 }, // 11 Pro Max, XS Max, 11, XR
+      { width: 402, height: 874, widgetSize: 162 }, // 16 Pro
+      { width: 414, height: 736, widgetSize: 159 }, // Home button Plus phones
+      { width: 393, height: 852, widgetSize: 158 }, // 16, 15, 15 Pro, 14 Pro
+      { width: 390, height: 844, widgetSize: 158 }, // 14, 13, 13 Pro, 12, 12 Pro
+      { width: 375, height: 812, widgetSize: 155 }, // 13 mini, 12 mini / 11 Pro, XS, X
+      { width: 375, height: 667, widgetSize: 148 }, // SE3, SE2, Home button Plus in Display Zoom mode
+      { width: 360, height: 780, widgetSize: 155 }, // 11 and XR in Display Zoom mode
+      { width: 320, height: 568, widgetSize: 141 } // SE1
+    ];
+
+    const deviceScreenWidth = Device.screenSize().width;
+    const deviceScreenHeight = Device.screenSize().height;
+
+    const matchingScreen = screenData.find(screen =>
+      (screen.width === deviceScreenWidth && screen.height === deviceScreenHeight) ||
+      (screen.width === deviceScreenHeight && screen.height === deviceScreenWidth)
+    );
+
+    if (!matchingScreen) {
+      return 1;
+    };
+
+    const scaleFactor = (matchingScreen.widgetSize - 30) / (referenceScreenSize.widgetSize - 30);
+
+    return Math.floor(scaleFactor * 100) / 100;
   }
 
-  // 创建左侧背景色
-  createLeftBackgroundColor() {
-    return Color.dynamic(new Color('#F2F2F7'), new Color('#1C1C1E'));
+  // 单位 - 完全仿照国网
+  unit(stack, text, spacer, corlor = this.widgetColor, overDue = false) {
+    stack.addSpacer(1);
+    const unitStack = stack.addStack();
+    unitStack.layoutVertically();
+    unitStack.addSpacer(spacer);
+    const unitTitle = unitStack.addText(text);
+    unitTitle.font = Font.semiboldRoundedSystemFont(10 * this.SCALE);
+    unitTitle.textColor = overDue ? new Color('DE2A18') : corlor;
   }
 
-  // 获取文字颜色
-  getTextColor() {
-    return Color.dynamic(new Color('#000000'), new Color('#FFFFFF'));
-  }
-
-  // 获取次要文字颜色
-  getSecondaryTextColor() {
-    return Color.dynamic(new Color('#666666'), new Color('#AAAAAA'));
-  }
-
-  // 创建数值显示条 - 完全仿照国网尺寸
-  createValueBar(height, color) {
-    const context = new DrawContext();
-    context.size = new Size(8 * this.SCALE, height);
-    context.opaque = false;
-    context.respectScreenScale = true;
-    
-    context.setFillColor(new Color(color));
-    context.fillRect(new Rect(0, 0, 8 * this.SCALE, height));
-    
-    return context.getImage();
-  }
-
-  // 创建分隔线 - 完全仿照国网
+  // 分栏 - 完全仿照国网
   split(stack, width, height, ver = false) {
     const splitStack = stack.addStack();
     splitStack.size = new Size(width, height);
@@ -183,10 +186,10 @@ class BroadbandWidget extends DmYY {
     splitStack.backgroundColor = Color.dynamic(new Color('#B6B5BA'), new Color('#414144'));
   }
 
-  // 设置标题 - 完全仿照国网
+  // 标题 - 完全仿照国网
   setTitle(stack, iconColor, nameColor) {
     const nameStack = stack.addStack();
-    const iconSFS = SFSymbol.named('house.fill');
+    const iconSFS = SFSymbol.named('wifi');
     iconSFS.applyHeavyWeight();
     let icon = nameStack.addImage(iconSFS.image);
     icon.imageSize = new Size(20 * this.SCALE, 20 * this.SCALE);
@@ -216,14 +219,14 @@ class BroadbandWidget extends DmYY {
     const titleStack = leftStack.addStack();
     const title = titleStack.addText(data[0]);
     title.font = Font.systemFont(10 * this.SCALE);
-    title.textColor = this.getTextColor();
+    title.textColor = this.widgetColor;
     title.textOpacity = 0.5;
 
     const valueStack = leftStack.addStack();
     valueStack.centerAlignContent();
     const value = valueStack.addText(data[1]);
     value.font = Font.semiboldRoundedSystemFont(16 * this.SCALE);
-    value.textColor = this.getTextColor();
+    value.textColor = this.widgetColor;
     valueStack.addSpacer();
 
     const unitStack = valueStack.addStack();
@@ -231,22 +234,11 @@ class BroadbandWidget extends DmYY {
     unitStack.borderWidth = 1;
     unitStack.borderColor = new Color(color);
     unitStack.setPadding(1, 3 * this.SCALE, 1, 3 * this.SCALE);
-    unitStack.size = new Size(30 * this.SCALE, 0)
+    unitStack.size = new Size(30 * this.SCALE, 0);
     unitStack.backgroundColor = Color.dynamic(new Color(color), new Color(color, 0.3));
     const unit = unitStack.addText(data[2]);
     unit.font = Font.mediumRoundedSystemFont(10 * this.SCALE);
     unit.textColor = Color.dynamic(Color.white(), new Color(color));
-  }
-
-  // 单位 - 完全仿照国网
-  unit(stack, text, spacer, corlor = this.getTextColor(), overDue = false) {
-    stack.addSpacer(1);
-    const unitStack = stack.addStack();
-    unitStack.layoutVertically();
-    unitStack.addSpacer(spacer);
-    const unitTitle = unitStack.addText(text);
-    unitTitle.font = Font.semiboldRoundedSystemFont(10 * this.SCALE);
-    unitTitle.textColor = overDue ? new Color('DE2A18') : corlor;
   }
 
   // 更新时间 - 完全仿照国网
@@ -287,8 +279,8 @@ class BroadbandWidget extends DmYY {
     balanceText.font = Font.semiboldRoundedSystemFont(balanceSize);
     balanceText.lineLimit = 1;
     balanceText.minimumScaleFactor = 0.5;
-    balanceText.textColor = this.getTextColor();
-    this.unit(balanceStack, "元", spacer * this.SCALE, this.getTextColor());
+    balanceText.textColor = this.widgetColor;
+    this.unit(balanceStack, "元", spacer * this.SCALE, this.widgetColor);
     balanceStack.addSpacer();
     bodyStack.addSpacer(3 * this.SCALE);
     
@@ -299,31 +291,55 @@ class BroadbandWidget extends DmYY {
     balanceTitleStack.addSpacer();
     bodyStack.addSpacer(padding * this.SCALE);
 
-    balanceTitleText.textColor = this.getTextColor();
+    balanceTitleText.textColor = this.widgetColor;
     balanceTitleText.font = Font.semiboldSystemFont(titleSize);
     balanceTitleText.textOpacity = 0.5;
   }
 
-  // 获取时间
-  getTime = () => {
-    const now = new Date();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hour = String(now.getHours()).padStart(2, '0');
-    const minute = String(now.getMinutes()).padStart(2, '0');
-    return `${month}-${day} ${hour}:${minute}`;
+  // 获取Logo - 完全仿照国网
+  getLogo = async () => {
+    const logoUrl = this.settings.logoUrl;
+    if (logoUrl) {
+      try {
+        return await this.getImageByUrl(logoUrl, 'broadband_logo.png');
+      } catch (e) {
+        console.log('自定义Logo加载失败，使用默认图标');
+      }
+    }
+    
+    // 使用默认WiFi图标
+    const icon = SFSymbol.named('wifi').image;
+    return icon;
   }
 
-  // 添加图片处理方法
+  // 格式化日期 - 完全仿照国网
+  formatDate() {
+    let theDate = Date.now();
+    let dF = new DateFormatter();
+    dF.dateFormat = 'yyyy-MM-dd HH:mm:ss';
+    theDate = new Date(theDate);
+    return dF.string(theDate);
+  }
+
+  // 获取时间 - 完全仿照国网
+  getTime = () => {
+    const dateTime = this.update;
+    const parts = dateTime.split(' ');
+    const datePart = parts[0].split('-');
+    const timePart = parts[1].split(':');
+    return `${datePart[1]}-${datePart[2]} ${timePart[0]}:${timePart[1]}`;
+  }
+
+  // 图片处理方法 - 完全仿照国网
   getImageByUrl = async (url, cacheKey) => {
     const cacheImg = this.loadImgCache(cacheKey);
     if (cacheImg != undefined && cacheImg != null) {
-      console.log(`使用缓存图片：${cacheKey}`);
+      console.log(`使用缓存：${cacheKey}`);
       return this.loadImgCache(cacheKey);
     }
 
     try {
-      console.log(`在线请求图片：${cacheKey}`);
+      console.log(`在线请求：${cacheKey}`);
       const req = new Request(url);
       const imgData = await req.load();
       const img = Image.fromData(imgData);
@@ -336,12 +352,11 @@ class BroadbandWidget extends DmYY {
         console.log(`使用缓存图片：${cacheKey}`);
         return cacheImg;
       }
-      console.log(`使用默认WiFi图标`);
-      // 返回默认WiFi图标
+      console.log(`使用预设图片`);
       const icon = SFSymbol.named('wifi').image;
       return icon;
     }
-  };
+  }
 
   loadImgCache(cacheKey) {
     const cacheFile = this.fm.joinPath(this.cachePath, cacheKey);
@@ -352,7 +367,7 @@ class BroadbandWidget extends DmYY {
       img = Image.fromFile(cacheFile);
     }
     return img;
-  };
+  }
 
   saveImgCache(cacheKey, img) {
     if (!this.fm.fileExists(this.cachePath)) {
@@ -360,38 +375,33 @@ class BroadbandWidget extends DmYY {
     };
     const cacheFile = this.fm.joinPath(this.cachePath, cacheKey);
     this.fm.writeImage(cacheFile, img);
-  };
+  }
 
-  // 初始化缓存路径
-  initCachePath() {
+  // 获取宽带数据 - 仿照国网的getBillData结构
+  getBroadbandData = async () => {
+    const dataName = '宽带数据';
     try {
-      if (this.settings.useICloud === 'true') this.fm = FileManager.iCloud();
-      this.cachePath = this.fm.joinPath(this.fm.documentsDirectory(), this.CACHE_FOLDER);
-      if (!this.fm.fileExists(this.cachePath)) {
-        this.fm.createDirectory(this.cachePath, true);
-      }
+      console.log('获取宽带余额数据');
+      this.data = await this.fetchBalanceData();
+
+      if (!this.data) throw new Error("请求失败,请检查配置");
+
+      this.balance = parseFloat(this.data.balance || 0);
+      this.remainingDays = this.calculateRemainingDays(this.balance);
+      this.monthlyFee = this.getMonthlyFee();
+      this.packageType = this.settings.packageType || '包月';
+      this.update = this.formatDate();
+      
+      console.log(`宽带余额: ${this.balance}元, 可用天数: ${this.remainingDays}天`);
     } catch (e) {
-      console.log(`初始化缓存路径失败: ${e}`);
+      console.log(e);
     }
   }
 
-  // 小组件布局 - 完全仿照国网 - 添加async
-  async renderSmallWidget(widget, data, isDark) {
-    const balance = parseFloat(data.balance || 0);
-    const remainingDays = this.calculateRemainingDays(balance);
-    const monthlyFee = this.getMonthlyFee();
-    
-    // 设置背景色 - 完全仿照国网
-    widget.backgroundColor = this.createBackgroundColor();
-    const padding = 12 * this.SCALE;
-    widget.setPadding(padding, padding, padding, padding);
-    
-    const bodyStack = widget.addStack();
-    bodyStack.layoutVertically();
-    bodyStack.setPadding(3 * this.SCALE, 3 * this.SCALE, 3 * this.SCALE, 3 * this.SCALE);
-    
-    // 顶部 - 余额和Logo - 完全仿照国网
-    const headerStack = bodyStack.addStack();
+  // 小组件样式1 - 完全仿照国网setWidgetStyle_1
+  async setWidgetStyle_1(stack) {
+    //  余额
+    const headerStack = stack.addStack();
     const hlStack = headerStack.addStack();
     hlStack.layoutVertically();
     
@@ -399,95 +409,175 @@ class BroadbandWidget extends DmYY {
     titleStack.layoutVertically();
     const title = titleStack.addText('宽带余额');
     const balanceStack = hlStack.addStack();
-    const balanceText = balanceStack.addText(`${data.balance}`);
-    this.unit(balanceStack, '元', 11.5 * this.SCALE, this.getTextColor());
+    const balanceText = balanceStack.addText(`${this.balance}`);
+    this.unit(balanceStack, '元', 11.5 * this.SCALE, this.widgetColor);
     
     title.font = Font.systemFont(12 * this.SCALE);
     title.textOpacity = 0.7;
     balanceText.font = Font.boldRoundedSystemFont(23 * this.SCALE);
     balanceText.minimumScaleFactor = 0.5;
     [title, balanceText].map(t => {
-      t.textColor = this.getTextColor();
+      t.textColor = this.widgetColor;
     });
     
     headerStack.addSpacer();
-    
-    // 使用现有的getImageByUrl方法获取Logo - 正确使用await
-    let wsgw;
-    if (this.settings.logoUrl) {
-      wsgw = headerStack.addImage(await this.getImageByUrl(this.settings.logoUrl, 'broadband_logo.png'));
-    } else {
-      // 使用默认WiFi图标
-      const icon = SFSymbol.named('wifi').image;
-      wsgw = headerStack.addImage(icon);
-    }
+    let wsgw = headerStack.addImage(await this.getLogo());
     wsgw.imageSize = new Size(26 * this.SCALE, 26 * this.SCALE);
-    wsgw.tintColor = this.getTextColor();
+    if (this.smallStackColor !== '#3A9690') wsgw.tintColor = new Color(this.smallStackColor);
     
-    bodyStack.addSpacer();
+    stack.addSpacer();
     
-    // 底部数据 - 完全仿照国网
-    this.setList(bodyStack, ['可用天数', remainingDays.toString(), '天'], '#4CAF50');
-    bodyStack.addSpacer();
-    this.setList(bodyStack, ['每月费用', monthlyFee, '元'], '#2196F3');
+    // 底部数据
+    this.setList(stack, ['可用天数', this.remainingDays.toString(), '天'], '#4CAF50');
+    stack.addSpacer();
+    this.setList(stack, ['每月费用', this.monthlyFee, '元'], '#2196F3');
   }
 
-  // 中等组件布局 - 完全仿照国网 - 添加async
-  async renderMediumWidget(widget, data, isDark) {
-    const balance = parseFloat(data.balance || 0);
-    const remainingDays = this.calculateRemainingDays(balance);
-    const monthlyFee = this.getMonthlyFee();
+  // 小组件样式2 - 完全仿照国网setWidgetStyle_2
+  async setWidgetStyle_2(stack) {
+    const bodyStack = stack.addStack();
+    bodyStack.cornerRadius = 14 * this.SCALE;
+    bodyStack.layoutVertically();
+    const headerStack = bodyStack.addStack();
+    headerStack.setPadding(8 * this.SCALE, 12 * this.SCALE, 0, 12 * this.SCALE);
+    headerStack.layoutVertically();
+
+    const title = headerStack.addText('宽带余额');
+    title.font = Font.systemFont(12 * this.SCALE);
+    title.textColor = this.widgetColor;
+    title.textOpacity = 0.7;
     
-    // 设置背景色和padding - 完全仿照国网
-    widget.setPadding(0, 0, 0, 0);
-    widget.backgroundColor = this.createBackgroundColor();
+    const balanceStack = headerStack.addStack();
+    const balanceText = balanceStack.addText(`${this.balance}`);
+    balanceText.minimumScaleFactor = 0.5;
+    balanceText.font = Font.boldRoundedSystemFont(22 * this.SCALE);
+    const color = this.widgetColor;
+    balanceText.textColor = color;
+    this.unit(balanceStack, '元', 6 * this.SCALE, color);
+    balanceStack.addSpacer();
+    balanceStack.centerAlignContent();
+
+    const logoImage = balanceStack.addImage(await this.getLogo());
+    logoImage.imageSize = new Size(24 * this.SCALE, 24 * this.SCALE);
+
+    bodyStack.addSpacer();
+    const mainStack = bodyStack.addStack();
+    mainStack.setPadding(8 * this.SCALE, 12 * this.SCALE, 8 * this.SCALE, 12 * this.SCALE);
+    mainStack.cornerRadius = 14 * this.SCALE;
+    mainStack.backgroundColor = Color.dynamic(new Color("#E2E2E7", 0.3), new Color("#2C2F2F", 1));
+    mainStack.layoutVertically();
+
+    this.setList(mainStack, ['可用天数', this.remainingDays.toString(), '天'], this.smallStackColor);
+    mainStack.addSpacer();
+    this.setList(mainStack, ['每月费用', this.monthlyFee, '元'], this.endColor);
+  }
+
+  // 小组件样式3 - 完全仿照国网setWidgetStyle_3
+  async setWidgetStyle_3(stack, color) {
+    //  标题
+    this.setTitle(stack, new Color(color), new Color(color));
+    stack.addSpacer();
+
+    // 套餐信息
+    const packageData = ['套餐类型', this.packageType, ''];
+    if (packageData) {
+      const packageStack = stack.addStack();
+      packageStack.centerAlignContent();
+      const packageTitle = packageStack.addText(packageData[0]);
+      packageStack.addSpacer();
+      const packageValue = packageStack.addText(packageData[1]);
+      packageTitle.font = Font.regularRoundedSystemFont(12 * this.SCALE);
+      packageValue.font = Font.regularRoundedSystemFont(14 * this.SCALE);
+      [packageTitle, packageValue].map(t => {
+        t.textColor = new Color(color);
+      });
+    }
+
+    stack.addSpacer();
+    
+    //  余额
+    const downStack = stack.addStack();
+    const titleStack = downStack.addStack();
+    titleStack.layoutVertically();
+    const balanceTitleText = titleStack.addText('宽带余额');
+    const balanceStack = titleStack.addStack();
+    const balanceText = balanceStack.addText(`${this.balance}`);
+    balanceStack.addSpacer(1);
+    this.unit(balanceStack, '元', 8.5 * this.SCALE, new Color(color));
+    
+    balanceTitleText.font = Font.systemFont(12 * this.SCALE);
+    balanceTitleText.textOpacity = 0.7;
+    balanceText.font = Font.semiboldRoundedSystemFont(20 * this.SCALE);
+    [balanceTitleText, balanceText].map(t => {
+      t.textColor = new Color(color);
+    });
+    
+    downStack.addSpacer();
+    let wsgw = downStack.addImage(await this.getLogo());
+    wsgw.tintColor = new Color(color);
+    wsgw.imageSize = new Size(36 * this.SCALE, 36 * this.SCALE);
+  }
+
+  // 小组件渲染 - 完全仿照国网renderSmall
+  renderSmall = async (w) => {
+    const padding = 12 * this.SCALE;
+    w.setPadding(padding, padding, padding, padding);
+    const bodyStack = w.addStack();
+    const smallColor = this.smallStackColor;
+    bodyStack.layoutVertically();
+    
+    if (this.widgetStyle === '1') {
+      bodyStack.setPadding(3 * this.SCALE, 3 * this.SCALE, 3 * this.SCALE, 3 * this.SCALE);
+      await this.setWidgetStyle_1(bodyStack);
+    } else if (this.widgetStyle === '2') {
+      await this.setWidgetStyle_2(bodyStack);
+    } else if (this.widgetStyle === '3') {
+      bodyStack.setPadding(3 * this.SCALE, 3 * this.SCALE, 3 * this.SCALE, 3 * this.SCALE);
+      await this.setWidgetStyle_3(bodyStack, smallColor);
+    }
+    
+    return w;
+  }
+
+  // 中等组件渲染 - 完全仿照国网renderMedium
+  renderMedium = async (w) => {
+    w.setPadding(0, 0, 0, 0);
+    w.backgroundColor = Color.dynamic(new Color(this.settings.rightDayColor || "#E2E2E7"), new Color(this.settings.rightNightColor || "#2C2C2F"));
     const updateColor = new Color('#2F6E6B');
-    const bodyStack = widget.addStack();
+    const bodyStack = w.addStack();
     
-    // 左侧stack - 完全仿照国网尺寸和样式
+    //  左侧stack
     const leftStack = bodyStack.addStack();
     leftStack.layoutVertically();
     leftStack.setPadding(0, 15, 0, 15);
-    leftStack.size = new Size(130 * this.SCALE, 0);
-    leftStack.backgroundColor = this.createLeftBackgroundColor();
+    leftStack.size = new Size(this.size.leftStack / this.SCALE, 0);
+    leftStack.backgroundColor = Color.dynamic(new Color(this.settings.leftDayColor || "#F2F2F7"), new Color(this.settings.leftNightColor || "#1C1C1E"));
     
-    // 标题及LOGO - 完全仿照国网
+    //  标题及LOGO
     leftStack.addSpacer();
     const logoStack = leftStack.addStack();
     logoStack.addSpacer();
-    
-    // 使用现有的getImageByUrl方法获取Logo - 正确使用await
-    let wsgw;
-    if (this.settings.logoUrl) {
-      wsgw = logoStack.addImage(await this.getImageByUrl(this.settings.logoUrl, 'broadband_logo.png'));
-    } else {
-      // 使用默认WiFi图标
-      const icon = SFSymbol.named('wifi').image;
-      wsgw = logoStack.addImage(icon);
-    }
-    wsgw.imageSize = new Size(48 * this.SCALE, 48 * this.SCALE);
-    wsgw.tintColor = this.getTextColor();
+    let wsgw = logoStack.addImage(await this.getLogo());
+    wsgw.imageSize = new Size(this.size.logo, this.size.logo);
     logoStack.addSpacer();
     
     leftStack.addSpacer();
     this.setUpdateStack(leftStack, updateColor);
     leftStack.addSpacer(2);
     
-    // 余额显示 - 完全仿照国网样式
-    const balanceStackBgcolor = this.createBackgroundColor();
-    this.balance = data.balance;
-    this.setBalanceStack(leftStack, balanceStackBgcolor, 8 * this.SCALE, 20 * this.SCALE, 12 * this.SCALE, 4.5);
+    const balanceStackBgcolor = Color.dynamic(new Color(this.settings.rightDayColor || "#E2E2E7"), new Color(this.settings.rightNightColor || "#2C2C2F"));
+    this.balance = this.balance;
+    this.setBalanceStack(leftStack, balanceStackBgcolor, 8 * this.SCALE, this.size.balance, this.size.smallFont, 4.5);
     leftStack.addSpacer(15);
     
-    // 分隔线 - 完全仿照国网
     this.split(bodyStack, 0.5, 0, true);
     
-    // 右侧Stack - 完全仿照国网
+    //  右侧Stack
     const rightStack = bodyStack.addStack();
     rightStack.setPadding(15, 15, 15, 15);
     rightStack.layoutVertically();
     
-    // 第一行数据
+    // 第一行：可用天数 和 每月费用
     const firstRow = rightStack.addStack();
     firstRow.layoutHorizontally();
     firstRow.spacing = 12;
@@ -497,7 +587,11 @@ class BroadbandWidget extends DmYY {
     remainingStack.layoutHorizontally();
     remainingStack.centerAlignContent();
     
-    const remainingBar = remainingStack.addImage(this.createValueBar(30 * this.SCALE, '#4CAF50'));
+    const remainingBar = remainingStack.addStack();
+    remainingBar.size = new Size(8 * this.SCALE, 30 * this.SCALE);
+    remainingBar.cornerRadius = 4 * this.SCALE;
+    remainingBar.backgroundColor = new Color('#4CAF50');
+    
     remainingStack.addSpacer(10 * this.SCALE);
     
     const remainingContent = remainingStack.addStack();
@@ -506,15 +600,15 @@ class BroadbandWidget extends DmYY {
     
     const remainingTitle = remainingContent.addText('可用天数');
     remainingTitle.font = Font.systemFont(10 * this.SCALE);
-    remainingTitle.textColor = this.getTextColor();
+    remainingTitle.textColor = this.widgetColor;
     remainingTitle.textOpacity = 0.5;
     
     const remainingValueStack = remainingContent.addStack();
     remainingValueStack.centerAlignContent();
     
-    const remainingValue = remainingValueStack.addText(remainingDays.toString());
+    const remainingValue = remainingValueStack.addText(this.remainingDays.toString());
     remainingValue.font = Font.boldRoundedSystemFont(16 * this.SCALE);
-    remainingValue.textColor = this.getTextColor();
+    remainingValue.textColor = this.widgetColor;
     
     remainingValueStack.addSpacer();
     
@@ -534,7 +628,11 @@ class BroadbandWidget extends DmYY {
     monthlyStack.layoutHorizontally();
     monthlyStack.centerAlignContent();
     
-    const monthlyBar = monthlyStack.addImage(this.createValueBar(30 * this.SCALE, '#2196F3'));
+    const monthlyBar = monthlyStack.addStack();
+    monthlyBar.size = new Size(8 * this.SCALE, 30 * this.SCALE);
+    monthlyBar.cornerRadius = 4 * this.SCALE;
+    monthlyBar.backgroundColor = new Color('#2196F3');
+    
     monthlyStack.addSpacer(10 * this.SCALE);
     
     const monthlyContent = monthlyStack.addStack();
@@ -543,15 +641,15 @@ class BroadbandWidget extends DmYY {
     
     const monthlyTitle = monthlyContent.addText('每月费用');
     monthlyTitle.font = Font.systemFont(10 * this.SCALE);
-    monthlyTitle.textColor = this.getTextColor();
+    monthlyTitle.textColor = this.widgetColor;
     monthlyTitle.textOpacity = 0.5;
     
     const monthlyValueStack = monthlyContent.addStack();
     monthlyValueStack.centerAlignContent();
     
-    const monthlyValue = monthlyValueStack.addText(monthlyFee);
+    const monthlyValue = monthlyValueStack.addText(this.monthlyFee);
     monthlyValue.font = Font.boldRoundedSystemFont(16 * this.SCALE);
-    monthlyValue.textColor = this.getTextColor();
+    monthlyValue.textColor = this.widgetColor;
     
     monthlyValueStack.addSpacer();
     
@@ -567,383 +665,199 @@ class BroadbandWidget extends DmYY {
     monthlyUnit.textColor = Color.dynamic(Color.white(), new Color('#2196F3'));
     
     rightStack.addSpacer();
-    
-    // 分隔线 - 完全仿照国网
     this.split(rightStack, 0, 0.5 * this.SCALE);
-    
     rightStack.addSpacer();
     
-    // 第二行数据 - 套餐类型和状态
+    // 第二行：套餐类型 和 状态
     const secondRow = rightStack.addStack();
     secondRow.layoutHorizontally();
     secondRow.spacing = 12;
-    
-    // 套餐类型
-    const leftPlaceholder = secondRow.addStack();
-    leftPlaceholder.layoutHorizontally();
-    leftPlaceholder.centerAlignContent();
-    
-    const leftPlaceholderBar = leftPlaceholder.addImage(this.createValueBar(30 * this.SCALE, '#FFB347'));
-    leftPlaceholder.addSpacer(10 * this.SCALE);
-    
-    const leftPlaceholderContent = leftPlaceholder.addStack();
-    leftPlaceholderContent.layoutVertically();
-    leftPlaceholderContent.addSpacer(2 * this.SCALE);
-    
-    const leftPlaceholderTitle = leftPlaceholderContent.addText('套餐类型');
-    leftPlaceholderTitle.font = Font.systemFont(10 * this.SCALE);
-    leftPlaceholderTitle.textColor = this.getTextColor();
-    leftPlaceholderTitle.textOpacity = 0.5;
-    
-    const leftPlaceholderValueStack = leftPlaceholderContent.addStack();
-    leftPlaceholderValueStack.centerAlignContent();
-    
-    const packageType = this.settings.packageType || '包月';
-    const leftPlaceholderValue = leftPlaceholderValueStack.addText(packageType);
-    leftPlaceholderValue.font = Font.boldRoundedSystemFont(16 * this.SCALE);
-    leftPlaceholderValue.textColor = this.getTextColor();
-    
-    leftPlaceholderValueStack.addSpacer();
-    
-    // 状态
-    const rightPlaceholder = secondRow.addStack();
-    rightPlaceholder.layoutHorizontally();
-    rightPlaceholder.centerAlignContent();
-    
-    const rightPlaceholderBar = rightPlaceholder.addImage(this.createValueBar(30 * this.SCALE, '#9C27B0'));
-    rightPlaceholder.addSpacer(10 * this.SCALE);
-    
-    const rightPlaceholderContent = rightPlaceholder.addStack();
-    rightPlaceholderContent.layoutVertically();
-    rightPlaceholderContent.addSpacer(2 * this.SCALE);
-    
-    const rightPlaceholderTitle = rightPlaceholderContent.addText('状态');
-    rightPlaceholderTitle.font = Font.systemFont(10 * this.SCALE);
-    rightPlaceholderTitle.textColor = this.getTextColor();
-    rightPlaceholderTitle.textOpacity = 0.5;
-    
-    const rightPlaceholderValueStack = rightPlaceholderContent.addStack();
-    rightPlaceholderValueStack.centerAlignContent();
-    
-    const statusText = balance > 30 ? '正常' : balance > 10 ? '偏低' : '不足';
-    const rightPlaceholderValue = rightPlaceholderValueStack.addText(statusText);
-    rightPlaceholderValue.font = Font.boldRoundedSystemFont(16 * this.SCALE);
-    rightPlaceholderValue.textColor = this.getTextColor();
-    
-    rightPlaceholderValueStack.addSpacer();
-  }
-
-  // 大组件布局 - 完全仿照国网上下布局 - 添加async
-  async renderLargeWidget(widget, data, isDark) {
-    const balance = parseFloat(data.balance || 0);
-    const remainingDays = this.calculateRemainingDays(balance);
-    const monthlyFee = this.getMonthlyFee();
-    
-    // 设置背景色
-    widget.backgroundColor = this.createBackgroundColor();
-    widget.setPadding(16, 16, 16, 16);
-    
-    // 顶部时间显示 - 完全仿照国网
-    const timeStack = widget.addStack();
-    timeStack.addSpacer();
-    const updateTime = this.getTime();
-    const timeText = timeStack.addText(updateTime);
-    timeText.font = Font.systemFont(12);
-    timeText.textColor = this.getSecondaryTextColor();
-    timeText.textOpacity = 0.5;
-    timeStack.addSpacer();
-    
-    widget.addSpacer(20);
-    
-    // 主要余额卡片 - 上半部分，完全仿照国网
-    const mainBalanceCard = widget.addStack();
-    mainBalanceCard.layoutVertically();
-    mainBalanceCard.backgroundColor = this.createLeftBackgroundColor();
-    mainBalanceCard.cornerRadius = 18;
-    mainBalanceCard.setPadding(24, 24, 24, 24);
-    
-    const balanceHeader = mainBalanceCard.addStack();
-    balanceHeader.layoutHorizontally();
-    balanceHeader.centerAlignContent();
-    
-    const balanceLabel = balanceHeader.addText('当前宽带余额');
-    balanceLabel.font = Font.mediumSystemFont(16);
-    balanceLabel.textColor = this.getSecondaryTextColor();
-    
-    balanceHeader.addSpacer();
-    
-    const currencySymbol = balanceHeader.addText('¥');
-    currencySymbol.font = Font.boldSystemFont(20);
-    currencySymbol.textColor = this.getTextColor();
-    
-    mainBalanceCard.addSpacer(12);
-    
-    // 余额数值
-    const balanceValue = mainBalanceCard.addText(data.balance);
-    balanceValue.font = Font.boldSystemFont(48);
-    balanceValue.textColor = new Color(this.getStatusColor(balance));
-    balanceValue.centerAlignText();
-    
-    widget.addSpacer(20);
-    
-    // 详细信息区域 - 下半部分，完全仿照国网
-    const detailsContainer = widget.addStack();
-    detailsContainer.layoutVertically();
-    detailsContainer.backgroundColor = this.createLeftBackgroundColor();
-    detailsContainer.cornerRadius = 16;
-    detailsContainer.setPadding(20, 20, 20, 20);
-    
-    // 第一行数据
-    const firstRow = detailsContainer.addStack();
-    firstRow.layoutHorizontally();
-    firstRow.spacing = 16;
-    
-    // 可用天数
-    const remainingStack = firstRow.addStack();
-    remainingStack.layoutHorizontally();
-    remainingStack.centerAlignContent();
-    
-    const remainingBar = remainingStack.addImage(this.createValueBar(35 * this.SCALE, '#4CAF50'));
-    remainingStack.addSpacer(10);
-    
-    const remainingContent = remainingStack.addStack();
-    remainingContent.layoutVertically();
-    remainingContent.addSpacer(2);
-    
-    const remainingTitle = remainingContent.addText('可用天数');
-    remainingTitle.font = Font.systemFont(12);
-    remainingTitle.textColor = this.getSecondaryTextColor();
-    remainingTitle.textOpacity = 0.7;
-    
-    const remainingValueStack = remainingContent.addStack();
-    remainingValueStack.centerAlignContent();
-    
-    const remainingValue = remainingValueStack.addText(remainingDays.toString());
-    remainingValue.font = Font.boldRoundedSystemFont(20);
-    remainingValue.textColor = this.getTextColor();
-    
-    remainingValueStack.addSpacer(6);
-    
-    const remainingUnitStack = remainingValueStack.addStack();
-    remainingUnitStack.cornerRadius = 4;
-    remainingUnitStack.borderWidth = 1;
-    remainingUnitStack.borderColor = new Color('#4CAF50');
-    remainingUnitStack.setPadding(1, 3, 1, 3);
-    remainingUnitStack.backgroundColor = Color.dynamic(new Color('#4CAF50'), new Color('#4CAF50', 0.3));
-    
-    const remainingUnit = remainingUnitStack.addText('天');
-    remainingUnit.font = Font.mediumRoundedSystemFont(12);
-    remainingUnit.textColor = Color.dynamic(Color.white(), new Color('#4CAF50'));
-    
-    // 每月费用
-    const monthlyStack = firstRow.addStack();
-    monthlyStack.layoutHorizontally();
-    monthlyStack.centerAlignContent();
-    
-    const monthlyBar = monthlyStack.addImage(this.createValueBar(35 * this.SCALE, '#2196F3'));
-    monthlyStack.addSpacer(10);
-    
-    const monthlyContent = monthlyStack.addStack();
-    monthlyContent.layoutVertically();
-    monthlyContent.addSpacer(2);
-    
-    const monthlyTitle = monthlyContent.addText('每月费用');
-    monthlyTitle.font = Font.systemFont(12);
-    monthlyTitle.textColor = this.getSecondaryTextColor();
-    monthlyTitle.textOpacity = 0.7;
-    
-    const monthlyValueStack = monthlyContent.addStack();
-    monthlyValueStack.centerAlignContent();
-    
-    const monthlyValue = monthlyValueStack.addText(monthlyFee);
-    monthlyValue.font = Font.boldRoundedSystemFont(20);
-    monthlyValue.textColor = this.getTextColor();
-    
-    monthlyValueStack.addSpacer(6);
-    
-    const monthlyUnitStack = monthlyValueStack.addStack();
-    monthlyUnitStack.cornerRadius = 4;
-    monthlyUnitStack.borderWidth = 1;
-    monthlyUnitStack.borderColor = new Color('#2196F3');
-    monthlyUnitStack.setPadding(1, 3, 1, 3);
-    monthlyUnitStack.backgroundColor = Color.dynamic(new Color('#2196F3'), new Color('#2196F3', 0.3));
-    
-    const monthlyUnit = monthlyUnitStack.addText('元');
-    monthlyUnit.font = Font.mediumRoundedSystemFont(12);
-    monthlyUnit.textColor = Color.dynamic(Color.white(), new Color('#2196F3'));
-    
-    detailsContainer.addSpacer(15);
-    
-    // 第二行数据
-    const secondRow = detailsContainer.addStack();
-    secondRow.layoutHorizontally();
-    secondRow.spacing = 16;
     
     // 套餐类型
     const packageStack = secondRow.addStack();
     packageStack.layoutHorizontally();
     packageStack.centerAlignContent();
     
-    const packageBar = packageStack.addImage(this.createValueBar(35 * this.SCALE, '#FFB347'));
-    packageStack.addSpacer(10);
+    const packageBar = packageStack.addStack();
+    packageBar.size = new Size(8 * this.SCALE, 30 * this.SCALE);
+    packageBar.cornerRadius = 4 * this.SCALE;
+    packageBar.backgroundColor = new Color('#FFB347');
+    
+    packageStack.addSpacer(10 * this.SCALE);
     
     const packageContent = packageStack.addStack();
     packageContent.layoutVertically();
-    packageContent.addSpacer(2);
+    packageContent.addSpacer(2 * this.SCALE);
     
     const packageTitle = packageContent.addText('套餐类型');
-    packageTitle.font = Font.systemFont(12);
-    packageTitle.textColor = this.getSecondaryTextColor();
-    packageTitle.textOpacity = 0.7;
+    packageTitle.font = Font.systemFont(10 * this.SCALE);
+    packageTitle.textColor = this.widgetColor;
+    packageTitle.textOpacity = 0.5;
     
     const packageValueStack = packageContent.addStack();
     packageValueStack.centerAlignContent();
     
-    const packageType = this.settings.packageType || '包月';
-    const packageValue = packageValueStack.addText(packageType);
-    packageValue.font = Font.boldRoundedSystemFont(20);
-    packageValue.textColor = this.getTextColor();
+    const packageValue = packageValueStack.addText(this.packageType);
+    packageValue.font = Font.boldRoundedSystemFont(16 * this.SCALE);
+    packageValue.textColor = this.widgetColor;
     
-    packageValueStack.addSpacer(6);
+    packageValueStack.addSpacer();
     
     // 状态
     const statusStack = secondRow.addStack();
     statusStack.layoutHorizontally();
     statusStack.centerAlignContent();
     
-    const statusBar = statusStack.addImage(this.createValueBar(35 * this.SCALE, '#9C27B0'));
-    statusStack.addSpacer(10);
+    const statusBar = statusStack.addStack();
+    statusBar.size = new Size(8 * this.SCALE, 30 * this.SCALE);
+    statusBar.cornerRadius = 4 * this.SCALE;
+    statusBar.backgroundColor = new Color('#9C27B0');
+    
+    statusStack.addSpacer(10 * this.SCALE);
     
     const statusContent = statusStack.addStack();
     statusContent.layoutVertically();
-    statusContent.addSpacer(2);
+    statusContent.addSpacer(2 * this.SCALE);
     
     const statusTitle = statusContent.addText('余额状态');
-    statusTitle.font = Font.systemFont(12);
-    statusTitle.textColor = this.getSecondaryTextColor();
-    statusTitle.textOpacity = 0.7;
+    statusTitle.font = Font.systemFont(10 * this.SCALE);
+    statusTitle.textColor = this.widgetColor;
+    statusTitle.textOpacity = 0.5;
     
     const statusValueStack = statusContent.addStack();
     statusValueStack.centerAlignContent();
     
-    const statusText = balance > 30 ? '正常' : balance > 10 ? '偏低' : '不足';
+    const statusText = this.balance > 30 ? '正常' : this.balance > 10 ? '偏低' : '不足';
     const statusValue = statusValueStack.addText(statusText);
-    statusValue.font = Font.boldRoundedSystemFont(20);
-    statusValue.textColor = this.getTextColor();
+    statusValue.font = Font.boldRoundedSystemFont(16 * this.SCALE);
+    statusValue.textColor = this.widgetColor;
     
-    statusValueStack.addSpacer(6);
+    statusValueStack.addSpacer();
+
+    return w;
   }
 
-  // 错误状态组件 - 完全仿照国网
-  renderErrorWidget(widget, isDark) {
-    widget.backgroundColor = this.createBackgroundColor();
-    
-    const errorContainer = widget.addStack();
-    errorContainer.layoutVertically();
-    errorContainer.centerAlignContent();
-    
-    const errorIcon = errorContainer.addText('⚠️');
-    errorIcon.font = Font.systemFont(48);
-    errorContainer.addSpacer(15);
-    
-    const errorTitle = errorContainer.addText('连接失败');
-    errorTitle.font = Font.boldSystemFont(20);
-    errorTitle.textColor = this.getTextColor();
-    errorTitle.centerAlignText();
-    
-    errorContainer.addSpacer(8);
-    
-    const errorDesc = errorContainer.addText('请检查网络连接或配置信息');
-    errorDesc.font = Font.systemFont(14);
-    errorDesc.textColor = this.getSecondaryTextColor();
-    errorDesc.centerAlignText();
-    
-    errorContainer.addSpacer(12);
-    
-    const retryHint = errorContainer.addText('点击重试');
-    retryHint.font = Font.systemFont(12);
-    retryHint.textColor = this.getSecondaryTextColor();
-    retryHint.centerAlignText();
-    
-    widget.url = 'scriptable:///run?scriptName=' + Script.name();
+  // 初始化 - 完全仿照国网init
+  init = async () => {
+    try {
+      if (this.settings.useICloud === 'true') this.fm = FileManager.iCloud();
+      this.cachePath = this.fm.joinPath(this.fm.documentsDirectory(), this.CACHE_FOLDER);
+      
+      const scale = this.getWidgetScaleFactor();
+      this.SCALE = this.settings.SCALE || scale;
+      
+      Object.keys(this.size).forEach(key => {
+        this.size[key] = this.settings[key] ? this.settings[key] : this.size[key];
+        this.size[key] = this.size[key] * this.SCALE;
+      });
+
+      this.updateIndex();
+    } catch (e) {
+      console.log(e);
+    }
+    await this.getBroadbandData();
   }
 
-  // 脚本更新功能
-  async updateScript() {
-    const alert = new Alert();
-    alert.title = "脚本更新";
-    alert.message = "是否立即更新电信宽带脚本？更新后需要重新运行脚本。";
-    alert.addAction("更新");
-    alert.addCancelAction("取消");
-
-    const response = await alert.presentAlert();
-    if (response === 0) {
-      try {
-        const downloadUrl = 'https://raw.githubusercontent.com/your-repo/scripts/main/电信宽带.js';
-        const scriptName = Script.name() + '.js';
-
-        const updateRequest = new Request(downloadUrl);
-        const newScriptContent = await updateRequest.loadString();
-
-        const fm = FileManager[
-          module.filename.includes('Documents/iCloud~') ? 'iCloud' : 'local'
-        ]();
-        const scriptPath = fm.documentsDirectory() + `/${scriptName}`;
-        fm.writeString(scriptPath, newScriptContent);
-
-        const successAlert = new Alert();
-        successAlert.title = "更新成功";
-        successAlert.message = "脚本已更新，请关闭本脚本后重新打开!";
-        successAlert.addAction("确定");
-        await successAlert.present();
-        this.reopenScript();
-      } catch (e) {
-        const errorAlert = new Alert();
-        errorAlert.title = "更新失败";
-        errorAlert.message = `更新过程中出现错误: ${e.message}`;
-        errorAlert.addAction("确定");
-        await errorAlert.present();
-      }
+  // 更新索引 - 仿照国网updateIndex
+  updateIndex() {
+    const i = args.widgetParameter;
+    if (i == 0 || !i || i == null) {
+      this.name = this.settings.name || '电信宽带';
+      this.smallStackColor = this.settings.smallStackColor || this.smallStackColor;
+      this.widgetStyle = this.settings.widgetStyle || this.widgetStyle;
+      this.endColor = this.settings.endColor || this.endColor;
+      return;
     }
   }
 
-  // UI 主渲染
-  async renderWidget() {
-    const widget = new ListWidget();
-    const family = config.widgetFamily || 'medium';
-    const isDark = Device.isUsingDarkAppearance();
-  
-    // 初始化缓存路径
-    this.initCachePath();
-  
-    const data = await this.fetchBalanceData();
-  
-    if (data) {
-      if (family === 'small') {
-        await this.renderSmallWidget(widget, data, isDark); // 添加await
-      } else if (family === 'medium') {
-        await this.renderMediumWidget(widget, data, isDark); // 添加await
+  // 脚本更新检查 - 完全仿照国网
+  async checkAndUpdateScript() {
+    const updateUrl = PROXY_URL + "https://raw.githubusercontent.com/your-repo/scripts/main/broadband/upcoming.json";
+    const scriptName = Script.name() + '.js';
+
+    try {
+      const request = new Request(updateUrl);
+      const response = await request.loadJSON();
+      const latestVersion = response.find(i => i.name === "broadband").version;
+      const downloadUrl = response.find(i => i.name === "broadband").downloadUrl;
+      const isUpdateAvailable = this.version !== latestVersion;
+
+      if (isUpdateAvailable) {
+        const alert = new Alert();
+        alert.title = "检测到新版本";
+        alert.message = `新版本：${latestVersion}，是否更新？`;
+        alert.addAction("更新");
+        alert.addCancelAction("取消");
+
+        const response = await alert.presentAlert();
+        if (response === 0) {
+          const updateRequest = new Request(downloadUrl);
+          const newScriptContent = await updateRequest.loadString();
+
+          const fm = FileManager[
+            module.filename.includes('Documents/iCloud~') ? 'iCloud' : 'local'
+          ]();
+          const scriptPath = fm.documentsDirectory() + `/${scriptName}`;
+          fm.writeString(scriptPath, newScriptContent);
+
+          const successAlert = new Alert();
+          successAlert.title = "更新成功";
+          successAlert.message = "脚本已更新，请关闭本脚本后重新打开!";
+          successAlert.addAction("确定");
+          await successAlert.present();
+          this.reopenScript();
+        }
       } else {
-        await this.renderLargeWidget(widget, data, isDark); // 添加await
+        const noUpdateAlert = new Alert();
+        noUpdateAlert.title = "无需更新";
+        noUpdateAlert.message = "当前已是最新版本。";
+        noUpdateAlert.addAction("确定");
+        await noUpdateAlert.present();
       }
-    } else {
-      this.renderErrorWidget(widget, isDark);
+    } catch (e) {
+      const errorAlert = new Alert();
+      errorAlert.title = "检查更新失败";
+      errorAlert.message = "无法连接到更新服务器。";
+      errorAlert.addAction("确定");
+      await errorAlert.present();
     }
-  
-    return widget;
   }
 
-  // 配置菜单
+  // 主渲染方法 - 完全仿照国网render
+  async render() {
+    await this.init();
+    const widget = new ListWidget();
+    await this.getWidgetBackgroundImage(widget);
+    
+    if (this.widgetFamily === 'medium') {
+      return await this.renderMedium(widget);
+    } else if (this.widgetFamily === 'large') {
+      return await this.renderLarge(widget);
+    } else {
+      return await this.renderSmall(widget);
+    }
+  }
+
+  // 配置菜单 - 完全仿照国网Run方法
   Run() {
     if (config.runsInApp) {
       this.registerAction({
-        title: '宽带余额设置',
+        title: '组件配置',
         menu: [
           {
-            title: 'iCloud存储',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/useICloud.png',
             type: 'switch',
+            title: 'iCloud',
             val: 'useICloud',
-            desc: '开启后缓存文件将存储在iCloud中'
+          },
+          {
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/update.png',
+            type: 'input',
+            title: '脚本更新',
+            name: 'update',
+            onClick: async () => {
+              await this.checkAndUpdateScript();
+            },
           },
           {
             title: '配置zgk12BhG参数',
@@ -973,6 +887,12 @@ class BroadbandWidget extends DmYY {
             desc: '输入套餐费用（元）',
             placeholder: '例如：99'
           },
+        ],
+      });
+
+      this.registerAction({
+        title: '',
+        menu: [
           {
             title: 'Logo图片地址',
             type: 'input',
@@ -980,6 +900,31 @@ class BroadbandWidget extends DmYY {
             desc: '输入自定义Logo图片URL地址，留空使用默认WiFi图标',
             placeholder: 'https://example.com/logo.png'
           },
+          {
+            title: '组件标题',
+            type: 'input',
+            val: 'name',
+            desc: '自定义组件标题，替代默认"电信宽带"',
+            placeholder: '电信宽带'
+          },
+          {
+            title: '小组件样式',
+            type: 'select',
+            val: 'widgetStyle',
+            options: ['1', '2', '3']
+          },
+          {
+            title: '小组件颜色',
+            type: 'color',
+            defaultValue: '#3A9690',
+            val: 'smallStackColor',
+          },
+        ],
+      });
+
+      this.registerAction({
+        title: '',
+        menu: [
           {
             name: 'test',
             title: '测试连接',
@@ -1005,20 +950,28 @@ class BroadbandWidget extends DmYY {
             }
           },
           {
-            name: 'update',
-            title: '脚本更新',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/reset.png',
+            title: '清除缓存',
+            desc: '',
+            val: 'reset',
             onClick: async () => {
-              await this.updateScript();
-            }
+              const options = ['取消', '确认清除'];
+              const message = '所有缓存数据将会被清空';
+              const index = await this.generateAlert(message, options);
+              if (index === 0) return;
+              this.fm.remove(this.cachePath);
+            },
           },
           {
-            name: 'redata',
-            title: '手动刷新',
+            name: 'reload',
+            url: PROXY_URL + 'https://raw.githubusercontent.com/anker1209/Scriptable/main/icon/reload.png',
+            title: '重载组件',
+            type: 'input',
             onClick: () => {
               this.reopenScript();
-            }
-          }
-        ]
+            },
+          },
+        ],
       });
     }
   }
