@@ -118,7 +118,7 @@ class BroadbandWidget extends DmYY {
     return Color.dynamic(new Color('#666666'), new Color('#AAAAAA'));
   }
 
-  // 创建数值显示条 - 完全仿照国网样式
+  // 创建数值显示条 - 完全仿照国网样式，修复尺寸问题
   createValueBar(height, color) {
     const context = new DrawContext();
     context.size = new Size(8, height);
@@ -131,7 +131,7 @@ class BroadbandWidget extends DmYY {
     return context.getImage();
   }
 
-  // 创建数据项 - 完全仿照国网样式
+  // 创建数据项 - 完全仿照国网样式，修复宽度问题
   createDataItem(parentStack, title, value, unit, color) {
     const itemStack = parentStack.addStack();
     itemStack.layoutHorizontally();
@@ -161,9 +161,9 @@ class BroadbandWidget extends DmYY {
     valueText.font = Font.boldRoundedSystemFont(18);
     valueText.textColor = this.getTextColor();
     
-    valueStack.addSpacer();
+    valueStack.addSpacer(4);
     
-    // 单位标签 - 完全仿照国网样式
+    // 单位标签 - 完全仿照国网样式，修复尺寸
     const unitStack = valueStack.addStack();
     unitStack.cornerRadius = 4;
     unitStack.borderWidth = 1;
@@ -178,7 +178,7 @@ class BroadbandWidget extends DmYY {
     return itemStack;
   }
 
-  // 小组件布局 - 完全仿照国网样式
+  // 小组件布局 - 完全仿照国网样式，修复尺寸
   renderSmallWidget(widget, data, isDark) {
     const balance = parseFloat(data.balance || 0);
     const remainingDays = this.calculateRemainingDays(balance);
@@ -234,7 +234,7 @@ class BroadbandWidget extends DmYY {
     this.createDataItem(dataStack, '每月费用', monthlyFee, '元', '#2196F3');
   }
 
-  // 中等组件布局 - 完全仿照国网样式
+  // 中等组件布局 - 完全仿照国网样式，修复尺寸问题
   renderMediumWidget(widget, data, isDark) {
     const balance = parseFloat(data.balance || 0);
     const remainingDays = this.calculateRemainingDays(balance);
@@ -247,10 +247,10 @@ class BroadbandWidget extends DmYY {
     const mainStack = widget.addStack();
     mainStack.layoutHorizontally();
     
-    // 左侧 - 余额展示区域
+    // 左侧 - 余额展示区域，固定宽度避免被遮挡
     const leftStack = mainStack.addStack();
     leftStack.layoutVertically();
-    leftStack.size = new Size(130, 0);
+    leftStack.size = new Size(130, 0); // 固定宽度，和国网保持一致
     leftStack.backgroundColor = this.createLeftBackgroundColor();
     leftStack.setPadding(0, 15, 0, 15);
     
@@ -315,7 +315,7 @@ class BroadbandWidget extends DmYY {
     separatorStack.size = new Size(0.5, 0);
     separatorStack.backgroundColor = Color.dynamic(new Color('#B6B5BA'), new Color('#414144'));
     
-    // 右侧 - 数据展示区域
+    // 右侧 - 数据展示区域，自适应宽度
     const rightStack = mainStack.addStack();
     rightStack.layoutVertically();
     rightStack.setPadding(15, 15, 15, 15);
@@ -325,7 +325,7 @@ class BroadbandWidget extends DmYY {
     firstRow.layoutHorizontally();
     firstRow.spacing = 12;
     
-    // 可用天数
+    // 可用天数 - 修复宽度问题
     const remainingStack = firstRow.addStack();
     remainingStack.layoutHorizontally();
     remainingStack.centerAlignContent();
@@ -349,7 +349,7 @@ class BroadbandWidget extends DmYY {
     remainingValue.font = Font.boldRoundedSystemFont(16);
     remainingValue.textColor = this.getTextColor();
     
-    remainingValueStack.addSpacer();
+    remainingValueStack.addSpacer(4);
     
     const remainingUnitStack = remainingValueStack.addStack();
     remainingUnitStack.cornerRadius = 4;
@@ -362,7 +362,7 @@ class BroadbandWidget extends DmYY {
     remainingUnit.font = Font.mediumRoundedSystemFont(10);
     remainingUnit.textColor = Color.dynamic(Color.white(), new Color('#4CAF50'));
     
-    // 每月费用
+    // 每月费用 - 修复宽度问题
     const monthlyStack = firstRow.addStack();
     monthlyStack.layoutHorizontally();
     monthlyStack.centerAlignContent();
@@ -386,7 +386,7 @@ class BroadbandWidget extends DmYY {
     monthlyValue.font = Font.boldRoundedSystemFont(16);
     monthlyValue.textColor = this.getTextColor();
     
-    monthlyValueStack.addSpacer();
+    monthlyValueStack.addSpacer(4);
     
     const monthlyUnitStack = monthlyValueStack.addStack();
     monthlyUnitStack.cornerRadius = 4;
@@ -408,12 +408,12 @@ class BroadbandWidget extends DmYY {
     
     rightStack.addSpacer();
     
-    // 第二行空白区域（保持和国网一致的布局）
+    // 第二行数据 - 套餐类型和状态
     const secondRow = rightStack.addStack();
     secondRow.layoutHorizontally();
     secondRow.spacing = 12;
     
-    // 左侧占位
+    // 套餐类型
     const leftPlaceholder = secondRow.addStack();
     leftPlaceholder.layoutHorizontally();
     leftPlaceholder.centerAlignContent();
@@ -438,9 +438,9 @@ class BroadbandWidget extends DmYY {
     leftPlaceholderValue.font = Font.boldRoundedSystemFont(16);
     leftPlaceholderValue.textColor = this.getTextColor();
     
-    leftPlaceholderValueStack.addSpacer();
+    leftPlaceholderValueStack.addSpacer(4);
     
-    // 右侧占位
+    // 状态
     const rightPlaceholder = secondRow.addStack();
     rightPlaceholder.layoutHorizontally();
     rightPlaceholder.centerAlignContent();
@@ -465,21 +465,10 @@ class BroadbandWidget extends DmYY {
     rightPlaceholderValue.font = Font.boldRoundedSystemFont(16);
     rightPlaceholderValue.textColor = this.getTextColor();
     
-    rightPlaceholderValueStack.addSpacer();
-    
-    const rightPlaceholderUnitStack = rightPlaceholderValueStack.addStack();
-    rightPlaceholderUnitStack.cornerRadius = 4;
-    rightPlaceholderUnitStack.borderWidth = 1;
-    rightPlaceholderUnitStack.borderColor = new Color('#9C27B0');
-    rightPlaceholderUnitStack.setPadding(1, 3, 1, 3);
-    rightPlaceholderUnitStack.backgroundColor = Color.dynamic(new Color('#9C27B0'), new Color('#9C27B0', 0.3));
-    
-    const rightPlaceholderUnit = rightPlaceholderUnitStack.addText('');
-    rightPlaceholderUnit.font = Font.mediumRoundedSystemFont(10);
-    rightPlaceholderUnit.textColor = Color.dynamic(Color.white(), new Color('#9C27B0'));
+    rightPlaceholderValueStack.addSpacer(4);
   }
 
-  // 大组件布局 - 扩展版本
+  // 大组件布局 - 修复尺寸问题
   renderLargeWidget(widget, data, isDark) {
     const balance = parseFloat(data.balance || 0);
     const remainingDays = this.calculateRemainingDays(balance);
@@ -492,10 +481,10 @@ class BroadbandWidget extends DmYY {
     const mainStack = widget.addStack();
     mainStack.layoutHorizontally();
     
-    // 左侧 - 余额展示区域
+    // 左侧 - 余额展示区域，固定宽度
     const leftStack = mainStack.addStack();
     leftStack.layoutVertically();
-    leftStack.size = new Size(160, 0);
+    leftStack.size = new Size(160, 0); // 固定宽度，和国网保持一致
     leftStack.backgroundColor = this.createLeftBackgroundColor();
     leftStack.setPadding(0, 20, 0, 20);
     
@@ -560,7 +549,7 @@ class BroadbandWidget extends DmYY {
     separatorStack.size = new Size(0.5, 0);
     separatorStack.backgroundColor = Color.dynamic(new Color('#B6B5BA'), new Color('#414144'));
     
-    // 右侧 - 数据展示区域
+    // 右侧 - 数据展示区域，自适应宽度
     const rightStack = mainStack.addStack();
     rightStack.layoutVertically();
     rightStack.setPadding(20, 20, 20, 20);
@@ -570,7 +559,7 @@ class BroadbandWidget extends DmYY {
     firstRow.layoutHorizontally();
     firstRow.spacing = 18;
     
-    // 可用天数
+    // 可用天数 - 修复宽度问题
     const remainingStack = firstRow.addStack();
     remainingStack.layoutHorizontally();
     remainingStack.centerAlignContent();
@@ -607,7 +596,7 @@ class BroadbandWidget extends DmYY {
     remainingUnit.font = Font.mediumRoundedSystemFont(12);
     remainingUnit.textColor = Color.dynamic(Color.white(), new Color('#4CAF50'));
     
-    // 每月费用
+    // 每月费用 - 修复宽度问题
     const monthlyStack = firstRow.addStack();
     monthlyStack.layoutHorizontally();
     monthlyStack.centerAlignContent();
@@ -653,7 +642,7 @@ class BroadbandWidget extends DmYY {
     
     rightStack.addSpacer(18);
     
-    // 第二行数据
+    // 第二行数据 - 套餐类型和状态
     const secondRow = rightStack.addStack();
     secondRow.layoutHorizontally();
     secondRow.spacing = 18;
@@ -711,17 +700,6 @@ class BroadbandWidget extends DmYY {
     statusValue.textColor = this.getTextColor();
     
     statusValueStack.addSpacer(6);
-    
-    const statusUnitStack = statusValueStack.addStack();
-    statusUnitStack.cornerRadius = 4;
-    statusUnitStack.borderWidth = 1;
-    statusUnitStack.borderColor = new Color('#9C27B0');
-    statusUnitStack.setPadding(1, 3, 1, 3);
-    statusUnitStack.backgroundColor = Color.dynamic(new Color('#9C27B0'), new Color('#9C27B0', 0.3));
-    
-    const statusUnit = statusUnitStack.addText('');
-    statusUnit.font = Font.mediumRoundedSystemFont(12);
-    statusUnit.textColor = Color.dynamic(Color.white(), new Color('#9C27B0'));
   }
 
   // 错误状态组件
@@ -756,6 +734,46 @@ class BroadbandWidget extends DmYY {
     retryHint.centerAlignText();
     
     widget.url = 'scriptable:///run?scriptName=' + Script.name();
+  }
+
+  // 新增：脚本更新功能
+  async updateScript() {
+    const alert = new Alert();
+    alert.title = "脚本更新";
+    alert.message = "是否立即更新电信宽带脚本？更新后需要重新运行脚本。";
+    alert.addAction("更新");
+    alert.addCancelAction("取消");
+
+    const response = await alert.presentAlert();
+    if (response === 0) {
+      try {
+        // 更新地址 - 可以替换为实际的脚本下载地址
+        const downloadUrl = 'https://raw.githubusercontent.com/mihucho/scripts/refs/heads/main/DDKD/kuandai.js';
+        const scriptName = Script.name() + '.js';
+
+        const updateRequest = new Request(downloadUrl);
+        const newScriptContent = await updateRequest.loadString();
+
+        const fm = FileManager[
+          module.filename.includes('Documents/iCloud~') ? 'iCloud' : 'local'
+        ]();
+        const scriptPath = fm.documentsDirectory() + `/${scriptName}`;
+        fm.writeString(scriptPath, newScriptContent);
+
+        const successAlert = new Alert();
+        successAlert.title = "更新成功";
+        successAlert.message = "脚本已更新，请关闭本脚本后重新打开!";
+        successAlert.addAction("确定");
+        await successAlert.present();
+        this.reopenScript();
+      } catch (e) {
+        const errorAlert = new Alert();
+        errorAlert.title = "更新失败";
+        errorAlert.message = `更新过程中出现错误: ${e.message}`;
+        errorAlert.addAction("确定");
+        await errorAlert.present();
+      }
+    }
   }
 
   // UI 主渲染
@@ -841,6 +859,13 @@ class BroadbandWidget extends DmYY {
                 alert.message = e.message;
               }
               await alert.present();
+            }
+          },
+          {
+            name: 'update',
+            title: '脚本更新',
+            onClick: async () => {
+              await this.updateScript();
             }
           },
           {
