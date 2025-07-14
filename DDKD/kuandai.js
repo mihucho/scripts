@@ -896,7 +896,7 @@ class BroadbandWidget extends DmYY {
 	// 脚本更新检查 - 完全仿照国网
 	async checkAndUpdateScript() {
 		const downloadUrl = "https://raw.githubusercontent.com/mihucho/scripts/refs/heads/main/DDKD/kuandai.js";
-		const scriptName = Script.name() + '.js';
+		const scriptName = this.CACHE_FOLDER + '.js';
 		try {
 			const alert = new Alert();
 			alert.title = "是否更新脚本？";
